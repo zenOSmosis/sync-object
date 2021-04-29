@@ -3,6 +3,8 @@ const { EVT_UPDATED, EVT_DESTROYED } = PhantomBase;
 const flatten = require("flat");
 const objectPath = require("object-path");
 const hash = require("object-hash");
+const { addedDiff, updatedDiff } = require("deep-object-diff");
+const deepMerge = require("merge-deep");
 
 class SyncObject extends PhantomBase {
   /**
@@ -63,6 +65,9 @@ class SyncObject extends PhantomBase {
    * Default strategy is "merge," meaning that existing properties will be
    * retained.
    *
+   * @emits EVT_UPDATED With changed state. IMPORTANT: This is only the changed
+   * state, and does not represent values which were the same before updating.
+   *
    * @param {Object} updatedState Partial state, if merging; complete state
    * otherwise.
    * @param {boolean} isMerge? [default = true] Non-merging will overwrite the
@@ -73,15 +78,25 @@ class SyncObject extends PhantomBase {
 
     if (!isMerge) {
       this._state = updatedState;
-    } else {
-      const flatUpdatedState = flatten(updatedState);
 
+      this.emit(EVT_UPDATED, updatedState);
+    } else {
+      // Do the change detection before changing the state
+      const diffedUpdatedState = deepMerge(
+        addedDiff(this._state, updatedState),
+        updatedDiff(this._state, updatedState)
+      );
+
+      // Flatten and walk over the updated state, merging in each value to the
+      // class state
+      const flatUpdatedState = flatten(updatedState);
       for (const [path, value] of Object.entries(flatUpdatedState)) {
         objectPath.set(this._state, path, value);
       }
-    }
 
-    this.emit(EVT_UPDATED, updatedState);
+      // Emit the actual changed state.
+      this.emit(EVT_UPDATED, diffedUpdatedState);
+    }
   }
 
   /**

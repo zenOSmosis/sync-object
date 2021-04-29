@@ -1,5 +1,6 @@
 const test = require("tape");
 const SyncObject = require("../src");
+const { EVT_UPDATED } = SyncObject;
 
 test("instantiates without any parameters", t => {
   t.ok(new SyncObject());
@@ -105,7 +106,7 @@ test("handles hashing", t => {
 
   const hash1 = sync.getHash();
 
-  t.equals(hash1, sync.getHash(), "regenerates same hash");
+  t.equals(hash1, sync.getHash(), "regenerates same hash on subsequent runs");
 
   sync.setState({
     foo: {
@@ -115,7 +116,78 @@ test("handles hashing", t => {
 
   const hash2 = sync.getHash();
 
-  t.notEquals(hash1, hash2);
+  t.notEquals(hash1, hash2, "generates new hash on new updates");
+
+  t.end();
+});
+
+test("handles diff state updates", async t => {
+  t.plan(4);
+
+  const sync = new SyncObject({
+    test: 123,
+    other: 456,
+  });
+
+  await Promise.all([
+    new Promise(resolve =>
+      sync.once(EVT_UPDATED, updatedState => {
+        t.deepEquals(
+          updatedState,
+          { other: 101112 },
+          "diffs changed state value with same type"
+        );
+
+        resolve();
+      })
+    ),
+
+    sync.setState({ test: 123, other: 101112 }),
+  ]);
+
+  await Promise.all([
+    new Promise(resolve =>
+      sync.once(EVT_UPDATED, updatedState => {
+        t.deepEquals(
+          updatedState,
+          { test: "abcde", foo: "bar" },
+          "diffs changes state value with different type"
+        );
+
+        resolve();
+      })
+    ),
+
+    sync.setState({ test: "abcde", foo: "bar", other: 101112 }),
+  ]);
+
+  await Promise.all([
+    new Promise(resolve =>
+      sync.once(EVT_UPDATED, updatedState => {
+        t.deepEquals(
+          updatedState,
+          { other: undefined },
+          "diffs undefined state"
+        );
+
+        resolve();
+      })
+    ),
+
+    sync.setState({ test: "abcde", foo: "bar", other: undefined }),
+  ]);
+
+  await Promise.all([
+    new Promise(resolve =>
+      sync.once(EVT_UPDATED, updatedState => {
+        t.deepEquals(updatedState, { foo: null }, "diffs null state");
+
+        resolve();
+      })
+    ),
+
+    sync.setState({ test: "abcde", foo: null, other: undefined }),
+  ]);
 
   t.end();
 });
