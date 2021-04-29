@@ -8,8 +8,9 @@ const EVT_WRITABLE_FULL_SYNC = "writable-full-sync";
 const EVT_READ_ONLY_SYNC_UPDATE_HASH = "read-only-sync-update-hash";
 
 /**
- * Provides P2P access for SyncObject modules, using two SyncObjects, each
- * representative of outgoing (writable) and incoming (readOnly) scenarios.
+ * Provides P2P access for SyncObject modules, using two SyncObjects, where
+ * one represents the local (writable) peer and the other represents the
+ * "remote" (readOnly) peer.
  */
 class BidirectionalSyncObject extends PhantomBase {
   /**
