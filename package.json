@@ -22,8 +22,8 @@
   },
   "dependencies": {
     "deep-object-diff": "^1.1.0",
+    "deepmerge": "^4.2.2",
     "flat": "^5.0.2",
-    "merge-deep": "^3.0.3",
     "object-hash": "^2.1.1",
     "object-path": "^0.11.5",
     "phantom-base": "github:zenosmosis/phantom-base"

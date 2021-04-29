@@ -4,7 +4,7 @@ const flatten = require("flat");
 const objectPath = require("object-path");
 const hash = require("object-hash");
 const { addedDiff, updatedDiff } = require("deep-object-diff");
-const deepMerge = require("merge-deep");
+const deepMerge = require("deepmerge");
 
 class SyncObject extends PhantomBase {
   /**
