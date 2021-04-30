@@ -2,8 +2,14 @@ const test = require("tape");
 const SyncObject = require("../src");
 const { EVT_UPDATED } = SyncObject;
 
-test("instantiates without any parameters", t => {
-  t.ok(new SyncObject());
+test("instantiates without any parameters", async t => {
+  t.plan(2);
+
+  const sync = new SyncObject();
+
+  t.ok(sync, "instantiates");
+
+  t.ok(await sync.destroy().then(() => true), "destroys");
 
   t.end();
 });

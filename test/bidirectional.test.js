@@ -7,29 +7,32 @@ const {
   EVT_READ_ONLY_SYNC_UPDATE_HASH,
 } = SyncObject;
 
-test("instantiates without any parameters", t => {
+test("instantiates without any parameters", async t => {
+  t.plan(4);
+
   const syncChannel = new BidirectionalSyncObject();
   const syncObject = new SyncObject();
 
   t.equals(
     syncChannel.getReadOnlySyncObject().getClassName(),
-    syncObject.getClassName()
+    syncObject.getClassName(),
+    "creates default readOnly SyncObject"
   );
 
   t.equals(
     syncChannel.getWritableSyncObject().getClassName(),
-    syncObject.getClassName()
+    syncObject.getClassName(),
+    "creates default writable SyncObject"
   );
 
   t.notOk(
     syncChannel
       .getReadOnlySyncObject()
       .getIsSameInstance(syncChannel.getWritableSyncObject()),
-    "readOnly and writable are not the same object"
+    "readOnly and writable are not the same instance"
   );
 
-  syncChannel.destroy();
-  syncObject.destroy();
+  t.ok(await syncChannel.destroy().then(() => true), "destroys");
 
   t.end();
 });
