@@ -176,9 +176,15 @@ class BidirectionalSyncObject extends PhantomBase {
    * @return {void}
    */
   forceFullSync() {
-    this._setWriteSyncTimeoutTask(() => {
-      this.emit(EVT_WRITABLE_FULL_SYNC, this._writableSyncObject.getState());
-    }, this._options.fullStateDebounceTimeout);
+    this._setWriteSyncTimeoutTask(
+      () => {
+        this.emit(EVT_WRITABLE_FULL_SYNC, this._writableSyncObject.getState());
+      },
+      this._options.fullStateDebounceTimeout,
+      {
+        trailing: true,
+      }
+    );
   }
 
   /**
@@ -206,8 +212,13 @@ class BidirectionalSyncObject extends PhantomBase {
    * @param {number} timeout? [optional; default =
    * this._options.writeResyncThreshold] The number of milliseconds to wait
    * before retrying the sync.
+   * @param {Object} debounceOptions? [options] TODO: Document
    */
-  _setWriteSyncTimeoutTask(func, timeout = this._options.writeResyncThreshold) {
+  _setWriteSyncTimeoutTask(
+    func,
+    timeout = this._options.writeResyncThreshold,
+    debounceOptions = { leading: true, trailing: false }
+  ) {
     if (this._isDestroyed) {
       return;
     }
@@ -216,15 +227,21 @@ class BidirectionalSyncObject extends PhantomBase {
     // represents old state
     clearTimeout(this._writeSyncVerificationTimeout);
 
-    // Execute immediately
-    func();
+    if (debounceOptions.leading) {
+      // Execute immediately
+      func();
+    }
 
     this._writeSyncVerificationTimeout = setTimeout(() => {
       if (this._isDestroyed) {
         return;
       }
 
-      this.forceFullSync();
+      if (!debounceOptions.trailing) {
+        this.forceFullSync();
+      } else {
+        func();
+      }
     }, timeout);
   }
 }
