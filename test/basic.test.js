@@ -2,8 +2,14 @@ const test = require("tape");
 const SyncObject = require("../src");
 const { EVT_UPDATED } = SyncObject;
 
-test("instantiates without any parameters", t => {
-  t.ok(new SyncObject());
+test("instantiates without any parameters", async t => {
+  t.plan(2);
+
+  const sync = new SyncObject();
+
+  t.ok(sync, "instantiates");
+
+  t.ok(await sync.destroy().then(() => true), "destroys");
 
   t.end();
 });
@@ -187,6 +193,71 @@ test("handles diff state updates", async t => {
     ),
 
     sync.setState({ test: "abcde", foo: null, other: undefined }),
+  ]);
+
+  t.end();
+});
+
+test("handles post-null recovery", async t => {
+  const sync = new SyncObject({
+    peers: {
+      ["abcde"]: {
+        name: "Peer A",
+      },
+      ["fghij"]: {
+        name: "Peer B",
+      },
+    },
+  });
+
+  await Promise.all([
+    new Promise(resolve =>
+      sync.once(EVT_UPDATED, () => {
+        t.deepEquals(sync.getState(), {
+          peers: {
+            ["abcde"]: {
+              name: "Peer A",
+            },
+            ["fghij"]: null,
+          },
+        });
+
+        resolve();
+      })
+    ),
+
+    sync.setState({
+      peers: {
+        ["fghij"]: null,
+      },
+    }),
+  ]);
+
+  await Promise.all([
+    new Promise(resolve =>
+      sync.once(EVT_UPDATED, () => {
+        t.deepEquals(sync.getState(), {
+          peers: {
+            ["abcde"]: {
+              name: "Peer A",
+            },
+            ["fghij"]: {
+              name: "Peer B",
+            },
+          },
+        });
+
+        resolve();
+      })
+    ),
+
+    sync.setState({
+      peers: {
+        ["fghij"]: {
+          name: "Peer B",
+        },
+      },
+    }),
   ]);
 
   t.end();

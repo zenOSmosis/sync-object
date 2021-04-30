@@ -7,29 +7,32 @@ const {
   EVT_READ_ONLY_SYNC_UPDATE_HASH,
 } = SyncObject;
 
-test("instantiates without any parameters", t => {
+test("instantiates without any parameters", async t => {
+  t.plan(4);
+
   const syncChannel = new BidirectionalSyncObject();
   const syncObject = new SyncObject();
 
   t.equals(
     syncChannel.getReadOnlySyncObject().getClassName(),
-    syncObject.getClassName()
+    syncObject.getClassName(),
+    "creates default readOnly SyncObject"
   );
 
   t.equals(
     syncChannel.getWritableSyncObject().getClassName(),
-    syncObject.getClassName()
+    syncObject.getClassName(),
+    "creates default writable SyncObject"
   );
 
   t.notOk(
     syncChannel
       .getReadOnlySyncObject()
       .getIsSameInstance(syncChannel.getWritableSyncObject()),
-    "readOnly and writable are not the same object"
+    "readOnly and writable are not the same instance"
   );
 
-  syncChannel.destroy();
-  syncObject.destroy();
+  t.ok(await syncChannel.destroy().then(() => true), "destroys");
 
   t.end();
 });
@@ -40,8 +43,6 @@ test("ensures readOnly and writable sync objects cannot be the same instance", t
   t.throws(() => {
     new BidirectionalSyncObject(syncObject, syncObject);
   }, "readOnly and writable sync objects cannot be the same instance");
-
-  syncObject.destroy();
 
   t.end();
 });
@@ -68,7 +69,6 @@ test("ensures EVT_WRITABLE_PARTIAL_SYNC is emit once writable updates", async t 
     writableSyncObject.setState({ foo: "bar" }),
   ]);
 
-  writableSyncObject.destroy();
   syncChannel.destroy();
 
   t.end();
@@ -123,7 +123,7 @@ test("syncs non-synchronized states", async t => {
                           new Promise(resolve =>
                             peerB.once(
                               EVT_READ_ONLY_SYNC_UPDATE_HASH,
-                              updateHash => {
+                              async updateHash => {
                                 t.ok(
                                   peerA.verifyReadOnlySyncUpdateHash(
                                     updateHash
@@ -168,6 +168,9 @@ test("syncs non-synchronized states", async t => {
     peerBReadOnlySyncObject.getState(),
     "peerB's readOnly state matches peerA's writeable"
   );
+
+  peerA.destroy();
+  peerB.destroy();
 
   t.end();
 });

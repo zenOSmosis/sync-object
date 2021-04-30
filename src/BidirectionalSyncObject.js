@@ -8,6 +8,22 @@ const EVT_WRITABLE_FULL_SYNC = "writable-full-sync";
 const EVT_READ_ONLY_SYNC_UPDATE_HASH = "read-only-sync-update-hash";
 
 /**
+ * The number of milliseconds the writable sync should wait for a hash
+ * verification from the read-only peer.
+ */
+const DEFAULT_WRITE_RESYNC_THRESHOLD = 10000;
+
+/**
+ * The number of milliseconds the writable sync should debounce when doing
+ * rapid syncs in succession, in order to avoid sending full state multiple
+ * times.
+ *
+ * Note that most syncs after the initial sync will skip this debounce
+ * entirely, as the updates will be partial state updates, instead of full.
+ */
+const DEFAULT_FULL_STATE_DEBOUNCE_TIMEOUT = 1000;
+
+/**
  * Provides P2P access for SyncObject modules, using two SyncObjects, where
  * one represents the local (writable) peer and the other represents the
  * "remote" (readOnly) peer.
@@ -23,7 +39,16 @@ class BidirectionalSyncObject extends PhantomCore {
    * @param {SyncObject} readOnlySyncObject? [default = null] Represents
    * "their" state.
    */
-  constructor(writableSyncObject = null, readOnlySyncObject = null) {
+  constructor(
+    writableSyncObject = null,
+    readOnlySyncObject = null,
+    options = {}
+  ) {
+    const DEFAULT_OPTIONS = {
+      writeResyncThreshold: DEFAULT_WRITE_RESYNC_THRESHOLD,
+      fullStateDebounceTimeout: DEFAULT_FULL_STATE_DEBOUNCE_TIMEOUT,
+    };
+
     if (writableSyncObject && readOnlySyncObject) {
       if (writableSyncObject.getIsSameInstance(readOnlySyncObject)) {
         throw new Error(
@@ -34,24 +59,39 @@ class BidirectionalSyncObject extends PhantomCore {
 
     super();
 
+    this._options = { ...DEFAULT_OPTIONS, options };
+
     // Our state
     this._writableSyncObject = writableSyncObject || this._makeSyncObject();
 
     // Their state
     this._readOnlySyncObject = readOnlySyncObject || this._makeSyncObject();
 
-    this._writableDidUpdate = this._writableDidUpdate.bind(this);
+    this._writableDidPartiallyUpdate = this._writableDidPartiallyUpdate.bind(
+      this
+    );
 
-    this._writableSyncObject.on(EVT_UPDATED, this._writableDidUpdate);
+    this._writableSyncObject.on(EVT_UPDATED, this._writableDidPartiallyUpdate);
+
+    this._writeSyncVerificationTimeout = null;
+  }
+
+  /**
+   * @return {Object}
+   */
+  getOptions() {
+    return this._options;
   }
 
   /**
    * @return {Promise<void>}
    */
   async destroy() {
-    this._writableSyncObject.off(EVT_UPDATED, this._writableDidUpdate);
+    clearTimeout(this._writeSyncVerificationTimeout);
 
-    super.destroy();
+    this._writableSyncObject.off(EVT_UPDATED, this._writableDidPartiallyUpdate);
+
+    await super.destroy();
   }
 
   /**
@@ -87,35 +127,26 @@ class BidirectionalSyncObject extends PhantomCore {
   }
 
   /**
-   * Called when our own writable state has updated.
+   * This should be called when there is state to update the
+   * readOnlySyncObject.
    *
-   * Triggers network EVT_WRITABLE_PARTIAL_SYNC from local writable
-   * SyncObject when it has been updated.
-   *
-   * This is handled via the writeableSyncObject.
-   *
-   * @param {Object} state NOTE: This state will typically be the changed
-   * state, and not the full state of the calling SyncObject.
-   * @return void
-   */
-  _writableDidUpdate(state) {
-    // Perform sync
-    this.emit(EVT_WRITABLE_PARTIAL_SYNC, state);
-  }
-
-  /**
+   * IMPORTANT: This should be utilized instead of calling the
+   * readOnlySyncObject.setUpdate() method directly, as the sync won't update
+   * properly when doing so.
    *
    * @param {Object} state Partial, or full state, depending on isMerge value.
-   * @param {boolean} isMerge If true, state is a partial state. If false, the
-   * entire local state will be overwritten.
+   * @param {boolean} isMerge? [optional; default = true] If true, state is a
+   * partial state. If false, the entire local state will be overwritten.
    * @return void
    */
   receiveReadOnlyState(state, isMerge = true) {
     this._readOnlySyncObject.setState(state, isMerge);
 
-    const ourFullStateHash = this._readOnlySyncObject.getHash();
+    const theirFullStateHash = this._readOnlySyncObject.getHash();
 
-    this.emit(EVT_READ_ONLY_SYNC_UPDATE_HASH, ourFullStateHash);
+    // This should be compared against the other peer's writable SyncObject
+    // full state hash in order to determine if the states are in sync
+    this.emit(EVT_READ_ONLY_SYNC_UPDATE_HASH, theirFullStateHash);
   }
 
   /**
@@ -129,6 +160,8 @@ class BidirectionalSyncObject extends PhantomCore {
    */
   verifyReadOnlySyncUpdateHash(readOnlySyncUpdateHash) {
     if (this._writableSyncObject.getHash() === readOnlySyncUpdateHash) {
+      clearTimeout(this._writeSyncVerificationTimeout);
+
       return true;
     } else {
       this.forceFullSync();
@@ -143,7 +176,73 @@ class BidirectionalSyncObject extends PhantomCore {
    * @return {void}
    */
   forceFullSync() {
-    this.emit(EVT_WRITABLE_FULL_SYNC, this._writableSyncObject.getState());
+    this._setWriteSyncTimeoutTask(
+      () => {
+        this.emit(EVT_WRITABLE_FULL_SYNC, this._writableSyncObject.getState());
+      },
+      this._options.fullStateDebounceTimeout,
+      {
+        trailing: true,
+      }
+    );
+  }
+
+  /**
+   * Called when our own writable state has updated.
+   *
+   * Triggers network EVT_WRITABLE_PARTIAL_SYNC from local writable
+   * SyncObject when it has been updated.
+   *
+   * This is handled via the writeableSyncObject.
+   *
+   * @param {Object} state NOTE: This state will typically be the changed
+   * state, and not the full state of the calling SyncObject.
+   * @return void
+   */
+  _writableDidPartiallyUpdate(state) {
+    this._setWriteSyncTimeoutTask(() => {
+      // Perform sync
+      this.emit(EVT_WRITABLE_PARTIAL_SYNC, state);
+    });
+  }
+
+  /**
+   *
+   * @param {function} func
+   * @param {number} timeout? [optional; default =
+   * this._options.writeResyncThreshold] The number of milliseconds to wait
+   * before retrying the sync.
+   * @param {Object} debounceOptions? [options] TODO: Document
+   */
+  _setWriteSyncTimeoutTask(
+    func,
+    timeout = this._options.writeResyncThreshold,
+    debounceOptions = { leading: true, trailing: false }
+  ) {
+    if (this._isDestroyed) {
+      return;
+    }
+
+    // Clear existing timeout so that the previous handler does not run, as it
+    // represents old state
+    clearTimeout(this._writeSyncVerificationTimeout);
+
+    if (debounceOptions.leading) {
+      // Execute immediately
+      func();
+    }
+
+    this._writeSyncVerificationTimeout = setTimeout(() => {
+      if (this._isDestroyed) {
+        return;
+      }
+
+      if (!debounceOptions.trailing) {
+        this.forceFullSync();
+      } else {
+        func();
+      }
+    }, timeout);
   }
 }
 
