@@ -26,6 +26,6 @@
     "flat": "^5.0.2",
     "object-hash": "^2.1.1",
     "object-path": "^0.11.5",
-    "phantom-base": "github:zenosmosis/phantom-base"
+    "phantom-core": "github:zenosmosis/phantom-core"
   }
 }

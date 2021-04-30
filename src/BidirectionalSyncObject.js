@@ -1,5 +1,5 @@
-const PhantomBase = require("phantom-base");
-const { EVT_DESTROYED } = PhantomBase;
+const PhantomCore = require("phantom-core");
+const { EVT_DESTROYED } = PhantomCore;
 const SyncObject = require("./SyncObject");
 const { EVT_UPDATED } = SyncObject;
 
@@ -12,7 +12,7 @@ const EVT_READ_ONLY_SYNC_UPDATE_HASH = "read-only-sync-update-hash";
  * one represents the local (writable) peer and the other represents the
  * "remote" (readOnly) peer.
  */
-class BidirectionalSyncObject extends PhantomBase {
+class BidirectionalSyncObject extends PhantomCore {
   /**
    * If the optional writable or readOnly SyncObjects are not supplied, one of
    * each respective type will be automatically created and utilized during the

@@ -1,12 +1,12 @@
-const PhantomBase = require("phantom-base");
-const { EVT_UPDATED, EVT_DESTROYED } = PhantomBase;
+const PhantomCore = require("phantom-core");
+const { EVT_UPDATED, EVT_DESTROYED } = PhantomCore;
 const flatten = require("flat");
 const objectPath = require("object-path");
 const hash = require("object-hash");
 const { addedDiff, updatedDiff } = require("deep-object-diff");
 const deepMerge = require("deepmerge");
 
-class SyncObject extends PhantomBase {
+class SyncObject extends PhantomCore {
   /**
    * Ensures that the supplied state can be serialized.
    *
