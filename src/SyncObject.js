@@ -91,7 +91,27 @@ class SyncObject extends PhantomCore {
       // class state
       const flatUpdatedState = flatten(updatedState);
       for (const [path, value] of Object.entries(flatUpdatedState)) {
-        objectPath.set(this._state, path, value);
+        try {
+          objectPath.set(this._state, path, value);
+        } catch (err) {
+          // Fix issue where parent path might not be an object
+          if (
+            err instanceof TypeError &&
+            err.message.includes("Cannot set property")
+          ) {
+            const pathParts = path.split(".");
+            pathParts.splice(-1, 1);
+            const parentPath = pathParts.join(".");
+
+            // Set the parent path to be an object
+            objectPath.set(this._state, parentPath, {});
+
+            // Retry the update
+            objectPath.set(this._state, path, value);
+          } else {
+            throw err;
+          }
+        }
       }
 
       // Emit the actual changed state.

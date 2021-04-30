@@ -197,3 +197,68 @@ test("handles diff state updates", async t => {
 
   t.end();
 });
+
+test("handles post-null recovery", async t => {
+  const sync = new SyncObject({
+    peers: {
+      ["abcde"]: {
+        name: "Peer A",
+      },
+      ["fghij"]: {
+        name: "Peer B",
+      },
+    },
+  });
+
+  await Promise.all([
+    new Promise(resolve =>
+      sync.once(EVT_UPDATED, () => {
+        t.deepEquals(sync.getState(), {
+          peers: {
+            ["abcde"]: {
+              name: "Peer A",
+            },
+            ["fghij"]: null,
+          },
+        });
+
+        resolve();
+      })
+    ),
+
+    sync.setState({
+      peers: {
+        ["fghij"]: null,
+      },
+    }),
+  ]);
+
+  await Promise.all([
+    new Promise(resolve =>
+      sync.once(EVT_UPDATED, () => {
+        t.deepEquals(sync.getState(), {
+          peers: {
+            ["abcde"]: {
+              name: "Peer A",
+            },
+            ["fghij"]: {
+              name: "Peer B",
+            },
+          },
+        });
+
+        resolve();
+      })
+    ),
+
+    sync.setState({
+      peers: {
+        ["fghij"]: {
+          name: "Peer B",
+        },
+      },
+    }),
+  ]);
+
+  t.end();
+});
