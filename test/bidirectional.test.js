@@ -44,8 +44,6 @@ test("ensures readOnly and writable sync objects cannot be the same instance", t
     new BidirectionalSyncObject(syncObject, syncObject);
   }, "readOnly and writable sync objects cannot be the same instance");
 
-  syncObject.destroy();
-
   t.end();
 });
 
@@ -71,7 +69,6 @@ test("ensures EVT_WRITABLE_PARTIAL_SYNC is emit once writable updates", async t 
     writableSyncObject.setState({ foo: "bar" }),
   ]);
 
-  writableSyncObject.destroy();
   syncChannel.destroy();
 
   t.end();
@@ -126,7 +123,7 @@ test("syncs non-synchronized states", async t => {
                           new Promise(resolve =>
                             peerB.once(
                               EVT_READ_ONLY_SYNC_UPDATE_HASH,
-                              updateHash => {
+                              async updateHash => {
                                 t.ok(
                                   peerA.verifyReadOnlySyncUpdateHash(
                                     updateHash
@@ -171,6 +168,9 @@ test("syncs non-synchronized states", async t => {
     peerBReadOnlySyncObject.getState(),
     "peerB's readOnly state matches peerA's writeable"
   );
+
+  peerA.destroy();
+  peerB.destroy();
 
   t.end();
 });
