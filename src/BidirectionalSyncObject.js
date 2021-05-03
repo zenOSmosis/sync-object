@@ -49,6 +49,7 @@ class BidirectionalSyncObject extends PhantomCore {
     const DEFAULT_OPTIONS = {
       writeResyncThreshold: DEFAULT_WRITE_RESYNC_THRESHOLD,
       fullStateDebounceTimeout: DEFAULT_FULL_STATE_DEBOUNCE_TIMEOUT,
+      requiresInitialFullSync: true,
     };
 
     if (writableSyncObject && readOnlySyncObject) {
@@ -77,6 +78,7 @@ class BidirectionalSyncObject extends PhantomCore {
 
     this._writeSyncVerificationTimeout = null;
 
+    this._requiresInitialFullSync = this._options.requiresInitialFullSync;
     this._initialFullSyncVerificationHash = null;
     this._hasInitialFullSync = false;
 
@@ -179,39 +181,41 @@ class BidirectionalSyncObject extends PhantomCore {
    * @return {boolean}
    */
   verifyReadOnlySyncUpdateHash(readOnlySyncUpdateHash) {
-    // Handle case where _initialFullSyncVerificationHash has not been set
-    if (!this._initialFullSyncVerificationHash) {
-      // Clear existing verification timeout until initial full sync
-      // verification has occurred
-      clearTimeout(this._writeSyncVerificationTimeout);
+    if (this._requiresInitialFullSync) {
+      // Handle case where _initialFullSyncVerificationHash has not been set
+      if (!this._initialFullSyncVerificationHash) {
+        // Clear existing verification timeout until initial full sync
+        // verification has occurred
+        clearTimeout(this._writeSyncVerificationTimeout);
 
-      this.log.debug(
-        "Skipping verification until initial fully sync verification hash has been set"
-      );
+        this.log.debug(
+          "Skipping verification until initial fully sync verification hash has been set"
+        );
 
-      // Don't proceed
-      return false;
-    }
+        // Don't proceed
+        return false;
+      }
 
-    // Handle case where _initialFullSyncVerificationHash has been set but the
-    // initial full sync has not occurred and we have received a different hash
-    if (
-      !this._hasInitialFullSync &&
-      readOnlySyncUpdateHash !== this._initialFullSyncVerificationHash
-    ) {
-      // Clear existing verification timeout until initial full sync verification has occurred
-      clearTimeout(this._writeSyncVerificationTimeout);
+      // Handle case where _initialFullSyncVerificationHash has been set but the
+      // initial full sync has not occurred and we have received a different hash
+      if (
+        !this._hasInitialFullSync &&
+        readOnlySyncUpdateHash !== this._initialFullSyncVerificationHash
+      ) {
+        // Clear existing verification timeout until initial full sync verification has occurred
+        clearTimeout(this._writeSyncVerificationTimeout);
 
-      this.log.debug(
-        "Skipping verification until received full state verification hash"
-      );
+        this.log.debug(
+          "Skipping verification until received full state verification hash"
+        );
 
-      // Don't proceed
-      return false;
-    } else if (
-      readOnlySyncUpdateHash === this._initialFullSyncVerificationHash
-    ) {
-      this._hasInitialFullSync = true;
+        // Don't proceed
+        return false;
+      } else if (
+        readOnlySyncUpdateHash === this._initialFullSyncVerificationHash
+      ) {
+        this._hasInitialFullSync = true;
+      }
     }
 
     // If the received readOnlySyncUpdateHash matches a known, but unverified hash
@@ -284,7 +288,10 @@ class BidirectionalSyncObject extends PhantomCore {
     const fullState = this._writableSyncObject.getState();
     const fullStateHash = this._writableSyncObject.getHash();
 
-    if (!this._initialFullSyncVerificationHash) {
+    if (
+      this._requiresInitialFullSync &&
+      !this._initialFullSyncVerificationHash
+    ) {
       this._initialFullSyncVerificationHash = fullStateHash;
     }
 
@@ -321,7 +328,7 @@ class BidirectionalSyncObject extends PhantomCore {
    * @return void
    */
   _writableDidPartiallyUpdate(updatedState) {
-    if (!this._hasInitialFullSync) {
+    if (this._requiresInitialFullSync && !this._hasInitialFullSync) {
       this.log.debug("Skipping partial update until initial full sync occurs");
 
       return;
