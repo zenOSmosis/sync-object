@@ -60,9 +60,7 @@ class BidirectionalSyncObject extends PhantomCore {
       }
     }
 
-    super(options);
-
-    this._options = { ...DEFAULT_OPTIONS, ...options };
+    super({ ...DEFAULT_OPTIONS, ...options });
 
     // Our state
     this._writableSyncObject = writableSyncObject || this._makeSyncObject();
@@ -96,13 +94,6 @@ class BidirectionalSyncObject extends PhantomCore {
         trailing: true,
       }
     );
-  }
-
-  /**
-   * @return {Object}
-   */
-  getOptions() {
-    return this._options;
   }
 
   /**
