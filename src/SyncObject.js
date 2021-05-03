@@ -136,8 +136,11 @@ class SyncObject extends PhantomCore {
         }
       }
 
-      // Emit the actual changed state.
-      this.emit(EVT_UPDATED, diffedUpdatedState);
+      // Only emit EVT_UPDATED if something has changed
+      if (Object.keys(diffedUpdatedState).length) {
+        // Emit the actual changed state
+        this.emit(EVT_UPDATED, diffedUpdatedState);
+      }
     }
   }
 
