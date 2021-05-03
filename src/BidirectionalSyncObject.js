@@ -61,7 +61,7 @@ class BidirectionalSyncObject extends PhantomCore {
 
     super(options);
 
-    this._options = { ...DEFAULT_OPTIONS, options };
+    this._options = { ...DEFAULT_OPTIONS, ...options };
 
     // Our state
     this._writableSyncObject = writableSyncObject || this._makeSyncObject();
