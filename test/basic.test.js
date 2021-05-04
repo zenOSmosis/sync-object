@@ -384,3 +384,21 @@ test("handles EVT_UPDATED diff", async t => {
 
   t.end();
 });
+
+test("does not accept non-plain object states", t => {
+  t.plan(2);
+
+  t.throws(() => {
+    new SyncObject({
+      sync: new SyncObject(),
+    });
+  }, "rejects constructed classes as initial state");
+
+  const sync = new SyncObject();
+
+  t.throws(() => {
+    sync.setState({ test: new SyncObject() });
+  }, "rejects constructed classes as updated state");
+
+  t.end();
+});

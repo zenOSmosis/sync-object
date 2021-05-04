@@ -5,6 +5,7 @@ const objectPath = require("object-path");
 const hash = require("object-hash");
 const { addedDiff, updatedDiff } = require("deep-object-diff");
 const deepMerge = require("deepmerge");
+const { isPlainObject } = require("is-plain-object");
 
 class SyncObject extends PhantomCore {
   /**
@@ -16,8 +17,8 @@ class SyncObject extends PhantomCore {
    * @return void
    */
   static validateState(state) {
-    if (typeof state !== "object") {
-      throw new TypeError("State must be an object");
+    if (!isPlainObject(state)) {
+      throw new TypeError("State must be a plain JavaScript object");
     }
 
     try {
