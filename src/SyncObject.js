@@ -16,6 +16,10 @@ class SyncObject extends PhantomCore {
    * @return void
    */
   static validateState(state) {
+    if (typeof state !== "object") {
+      throw new TypeError("State must be an object");
+    }
+
     try {
       JSON.stringify(state);
     } catch (err) {
