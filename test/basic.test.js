@@ -262,3 +262,143 @@ test("handles post-null recovery", async t => {
 
   t.end();
 });
+
+test("handles EVT_UPDATED diff", async t => {
+  t.plan(4);
+
+  const sync = new SyncObject({
+    peers: {
+      ["abcde"]: {
+        media: {
+          ["media1"]: {
+            kinds: "audio",
+          },
+        },
+      },
+    },
+  });
+
+  await Promise.all([
+    new Promise(resolve => {
+      sync.once(EVT_UPDATED, changedState => {
+        t.deepEquals(
+          changedState,
+          {
+            peers: { abcde: { media: { media2: { kinds: "audio,video" } } } },
+          },
+          "handles basic diffing"
+        );
+
+        resolve();
+      });
+    }),
+
+    sync.setState({
+      peers: {
+        ["abcde"]: {
+          media: {
+            ["media1"]: {
+              kinds: "audio",
+            },
+            ["media2"]: {
+              kinds: "audio,video",
+            },
+          },
+        },
+      },
+    }),
+  ]);
+
+  await Promise.all([
+    new Promise(resolve => {
+      sync.once(EVT_UPDATED, changedState => {
+        t.deepEquals(
+          changedState,
+          {
+            peers: { abcde: { avatarURL: "some-url" } },
+          },
+          "handles subsequent diffing with separate child object"
+        );
+
+        resolve();
+      });
+    }),
+
+    sync.setState({
+      peers: {
+        ["abcde"]: {
+          avatarURL: "some-url",
+        },
+      },
+    }),
+  ]);
+
+  await Promise.all([
+    Promise.race([
+      new Promise(() => {
+        sync.once(EVT_UPDATED, () => {
+          throw new Error("Should not get here");
+        });
+      }),
+
+      new Promise(resolve =>
+        setTimeout(() => {
+          t.ok(
+            true,
+            "does not trigger EVT_UPDATED if there is no changed state"
+          );
+
+          resolve();
+        }, 1000)
+      ),
+    ]),
+
+    sync.setState({
+      peers: {
+        ["abcde"]: {
+          media: {
+            ["media1"]: {
+              kinds: "audio",
+            },
+          },
+        },
+      },
+    }),
+  ]);
+
+  t.deepEquals(
+    sync.getState(),
+    {
+      peers: {
+        abcde: {
+          media: {
+            media1: { kinds: "audio" },
+            media2: { kinds: "audio,video" },
+          },
+          avatarURL: "some-url",
+        },
+      },
+    },
+    "merges successfully after multiple EVT_UPDATED diff checks"
+  );
+
+  t.end();
+});
+
+test("does not accept non-plain object states", t => {
+  t.plan(2);
+
+  t.throws(() => {
+    new SyncObject({
+      sync: new SyncObject(),
+    });
+  }, "rejects constructed classes as initial state");
+
+  const sync = new SyncObject();
+
+  t.throws(() => {
+    sync.setState({ test: new SyncObject() });
+  }, "rejects constructed classes as updated state");
+
+  t.end();
+});

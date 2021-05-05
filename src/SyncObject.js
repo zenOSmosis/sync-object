@@ -5,40 +5,66 @@ const objectPath = require("object-path");
 const hash = require("object-hash");
 const { addedDiff, updatedDiff } = require("deep-object-diff");
 const deepMerge = require("deepmerge");
+const { isPlainObject } = require("is-plain-object");
 
 class SyncObject extends PhantomCore {
   /**
    * Ensures that the supplied state can be serialized.
    *
+   * @throws {TypeError} If passed state cannot be validated.
+   *
    * @param {Object} state
    * @return void
    */
   static validateState(state) {
+    if (!isPlainObject(state)) {
+      throw new TypeError("State must be a plain JavaScript object");
+    }
+
     try {
       JSON.stringify(state);
     } catch (err) {
-      throw new Error("SyncObject cannot contain non-serializable state");
+      throw new TypeError("SyncObject cannot contain non-serializable state");
     }
 
-    const walk = obj => {
+    /**
+     * Recursively walks the object checking for invalid properties.
+     *
+     * @param {Object} obj
+     */
+    const _rWalk = obj => {
       for (const key in obj) {
         if (obj.hasOwnProperty(key)) {
           const val = obj[key];
 
           if (typeof val === "function") {
-            throw new Error("SyncObject cannot contain functions in its state");
+            throw new TypeError(
+              "SyncObject cannot contain functions in its state"
+            );
           }
 
+          // Arrays are not supported at this time due to them not being easily
+          // merge-able.
+          //
+          // It's easy to add onto an array, sure, but if you remove an element
+          // at a particular index it would require a different API call than
+          // setState() would deliver.
+          //
+          // FIXME: Consider re-implementing array support and figure out how
+          // to handle them appropriately.
           if (Array.isArray(val)) {
-            throw new Error("SyncObject cannot contain an array in its state");
+            throw new TypeError(
+              "SyncObject cannot contain an array in its state"
+            );
           } else if (typeof val === "object") {
-            walk(val);
+            _rWalk(val);
           }
         }
       }
     };
 
-    walk(state);
+    // Start recursively walking
+    _rWalk(state);
   }
 
   /**
@@ -109,13 +135,17 @@ class SyncObject extends PhantomCore {
             // Retry the update
             objectPath.set(this._state, path, value);
           } else {
+            // Pass original error through
             throw err;
           }
         }
       }
 
-      // Emit the actual changed state.
-      this.emit(EVT_UPDATED, diffedUpdatedState);
+      // Only emit EVT_UPDATED if something has changed
+      if (Object.keys(diffedUpdatedState).length) {
+        // Emit the actual changed state
+        this.emit(EVT_UPDATED, diffedUpdatedState);
+      }
     }
   }
 

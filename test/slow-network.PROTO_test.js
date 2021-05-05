@@ -1,4 +1,4 @@
-const test = require("tape-async");
+const test = require("tape");
 const SyncObject = require("../src");
 const {
   BidirectionalSyncObject,
@@ -7,76 +7,22 @@ const {
   EVT_READ_ONLY_SYNC_UPDATE_HASH,
 } = SyncObject;
 
-test("instantiates without any parameters", async t => {
-  t.plan(4);
-
-  const syncChannel = new BidirectionalSyncObject();
-  const syncObject = new SyncObject();
-
-  t.equals(
-    syncChannel.getReadOnlySyncObject().getClassName(),
-    syncObject.getClassName(),
-    "creates default readOnly SyncObject"
-  );
-
-  t.equals(
-    syncChannel.getWritableSyncObject().getClassName(),
-    syncObject.getClassName(),
-    "creates default writable SyncObject"
-  );
-
-  t.notOk(
-    syncChannel
-      .getReadOnlySyncObject()
-      .getIsSameInstance(syncChannel.getWritableSyncObject()),
-    "readOnly and writable are not the same instance"
-  );
-
-  t.ok(await syncChannel.destroy().then(() => true), "destroys");
-
-  t.end();
-});
-
-test("ensures readOnly and writable sync objects cannot be the same instance", t => {
-  const syncObject = new SyncObject();
-
-  t.throws(() => {
-    new BidirectionalSyncObject(syncObject, syncObject);
-  }, "readOnly and writable sync objects cannot be the same instance");
-
-  t.end();
-});
-
-test("ensures EVT_WRITABLE_PARTIAL_SYNC is emit once writable updates", async t => {
-  t.plan(1);
-
-  const writableSyncObject = new SyncObject();
-
-  const syncChannel = new BidirectionalSyncObject(writableSyncObject, null, {
-    requiresInitialFullSync: false,
-  });
-
-  await Promise.all([
-    new Promise(resolve => {
-      syncChannel.once(EVT_WRITABLE_PARTIAL_SYNC, () => {
-        t.ok(
-          true,
-          "EVT_WRITABLE_PARTIAL_SYNC is emit after writableSyncObject state is updated"
-        );
+class SlowBidirectionalSyncObject extends BidirectionalSyncObject {
+  /**
+   * Simulate network latency by delaying the event emitter
+   */
+  async emit(...args) {
+    await new Promise(resolve =>
+      setTimeout(() => {
+        super.emit(...args);
 
         resolve();
-      });
-    }),
+      }, 3000)
+    );
+  }
+}
 
-    writableSyncObject.setState({ foo: "bar" }),
-  ]);
-
-  syncChannel.destroy();
-
-  t.end();
-});
-
-test("syncs non-synchronized states", async t => {
+test("syncs over slow network", async t => {
   t.plan(4);
 
   const peerAWritableSyncObject = new SyncObject({ test: 234, foo: 456 });
@@ -85,20 +31,14 @@ test("syncs non-synchronized states", async t => {
   const peerBWritableSyncObject = new SyncObject();
   const peerBReadOnlySyncObject = new SyncObject({ test: 456, foo: 123 });
 
-  const peerA = new BidirectionalSyncObject(
+  const peerA = new SlowBidirectionalSyncObject(
     peerAWritableSyncObject,
-    peerAReadOnlySyncObject,
-    {
-      requiresInitialFullSync: false,
-    }
+    peerAReadOnlySyncObject
   );
 
-  const peerB = new BidirectionalSyncObject(
+  const peerB = new SlowBidirectionalSyncObject(
     peerBWritableSyncObject,
-    peerBReadOnlySyncObject,
-    {
-      requiresInitialFullSync: false,
-    }
+    peerBReadOnlySyncObject
   );
 
   // Set peer A writable state and send it to peer b
@@ -131,7 +71,7 @@ test("syncs non-synchronized states", async t => {
                           new Promise(resolve =>
                             peerB.once(
                               EVT_READ_ONLY_SYNC_UPDATE_HASH,
-                              async updateHash => {
+                              updateHash => {
                                 t.ok(
                                   peerA.verifyReadOnlySyncUpdateHash(
                                     updateHash
@@ -176,9 +116,6 @@ test("syncs non-synchronized states", async t => {
     peerBReadOnlySyncObject.getState(),
     "peerB's readOnly state matches peerA's writeable"
   );
-
-  peerA.destroy();
-  peerB.destroy();
 
   t.end();
 });
