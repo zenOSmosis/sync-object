@@ -121,10 +121,7 @@ class SyncObject extends PhantomCore {
           objectPath.set(this._state, path, value);
         } catch (err) {
           // Fix issue where parent path might not be an object
-          if (
-            err instanceof TypeError &&
-            err.message.includes("Cannot set property")
-          ) {
+          if (err instanceof TypeError) {
             const pathParts = path.split(".");
             pathParts.splice(-1, 1);
             const parentPath = pathParts.join(".");
