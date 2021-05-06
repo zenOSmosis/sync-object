@@ -333,11 +333,13 @@ class BidirectionalSyncObject extends PhantomCore {
    * @return void
    */
   _writableDidPartiallyUpdate(updatedState) {
+    /*
     if (this._requiresInitialFullSync && !this._hasInitialFullSync) {
       this.log.debug("Skipping partial update until initial full sync occurs");
 
       return;
     }
+    */
 
     clearTimeout(this._writeSyncVerificationTimeout);
 
