@@ -53,7 +53,7 @@ test("ensures EVT_WRITABLE_PARTIAL_SYNC is emit once writable updates", async t 
   const writableSyncObject = new SyncObject();
 
   const syncChannel = new BidirectionalSyncObject(writableSyncObject, null, {
-    requiresInitialFullSync: false,
+    // requiresInitialFullSync: false,
   });
 
   await Promise.all([
@@ -89,7 +89,7 @@ test("syncs non-synchronized states", async t => {
     peerAWritableSyncObject,
     peerAReadOnlySyncObject,
     {
-      requiresInitialFullSync: false,
+      // requiresInitialFullSync: false,
     }
   );
 
@@ -97,7 +97,7 @@ test("syncs non-synchronized states", async t => {
     peerBWritableSyncObject,
     peerBReadOnlySyncObject,
     {
-      requiresInitialFullSync: false,
+      // requiresInitialFullSync: false,
     }
   );
 
