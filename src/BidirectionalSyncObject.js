@@ -177,7 +177,7 @@ class BidirectionalSyncObject extends PhantomCore {
       if (!this._initialFullSyncVerificationHash) {
         // Clear existing verification timeout until initial full sync
         // verification has occurred
-        clearTimeout(this._writeSyncVerificationTimeout);
+        // clearTimeout(this._writeSyncVerificationTimeout);
 
         this.log.debug(
           "Skipping verification until initial fully sync verification hash has been set"
@@ -194,7 +194,7 @@ class BidirectionalSyncObject extends PhantomCore {
         readOnlySyncUpdateHash !== this._initialFullSyncVerificationHash
       ) {
         // Clear existing verification timeout until initial full sync verification has occurred
-        clearTimeout(this._writeSyncVerificationTimeout);
+        // clearTimeout(this._writeSyncVerificationTimeout);
 
         this.log.debug(
           "Skipping verification until received full state verification hash"
