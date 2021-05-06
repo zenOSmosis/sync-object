@@ -172,6 +172,7 @@ class BidirectionalSyncObject extends PhantomCore {
    * @return {boolean}
    */
   verifyReadOnlySyncUpdateHash(readOnlySyncUpdateHash) {
+    /*
     if (this._requiresInitialFullSync) {
       // Handle case where _initialFullSyncVerificationHash has not been set
       if (!this._initialFullSyncVerificationHash) {
@@ -208,6 +209,7 @@ class BidirectionalSyncObject extends PhantomCore {
         this._hasInitialFullSync = true;
       }
     }
+    */
 
     // If the received readOnlySyncUpdateHash matches a known, but unverified hash
     if (this._unverifiedRemoteSyncHashes.includes(readOnlySyncUpdateHash)) {
