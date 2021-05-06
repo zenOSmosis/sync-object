@@ -94,12 +94,25 @@ class BidirectionalSyncObject extends PhantomCore {
         trailing: true,
       }
     );
+
+    // Sometimes the state just never stays in sync, so emit a hash every so
+    // often
+    //
+    // FIXME: Combine this w/ the heartbeat interval
+    this._pollInterval = setInterval(() => {
+      this.emit(
+        EVT_READ_ONLY_SYNC_UPDATE_HASH,
+        this._readOnlySyncObject.getHash()
+      );
+    }, this._options.writeResyncThreshold);
   }
 
   /**
    * @return {Promise<void>}
    */
   async destroy() {
+    clearInterval(this._pollInterval);
+
     clearTimeout(this._writeSyncVerificationTimeout);
 
     this._writableSyncObject.off(EVT_UPDATED, this._writableDidPartiallyUpdate);
