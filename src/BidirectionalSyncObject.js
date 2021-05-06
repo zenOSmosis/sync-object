@@ -172,6 +172,40 @@ class BidirectionalSyncObject extends PhantomCore {
    * @return {boolean}
    */
   verifyReadOnlySyncUpdateHash(readOnlySyncUpdateHash) {
+    if (this._writableSyncObject.getHash() === readOnlySyncUpdateHash) {
+      clearTimeout(this._writeSyncVerificationTimeout);
+
+      // Reset unverified hashes
+      this._unverifiedRemoteSyncHashes = [];
+
+      this.log.debug("In sync");
+
+      return true;
+    } else {
+      // TODO: Perform partial sync instead to make up for the diff
+      // Inside of this._unverifiedRemoteSyncHashes, keep state for each
+      // entry, and use a temporary SyncObject to create a diffed state,
+      // then run that as a partial update
+
+      // TODO: Remove after partial sync implemented here
+      this.forceFullSync(() => {
+        this.log.warn("Not in sync; performing full sync");
+      });
+
+      return false;
+    }
+  }
+
+  /**
+   * Compares readOnly sync update hash from remote to local's
+   * writableSyncObject.
+   *
+   * If the hash is not verified, it will call this.forceFullSync().
+   *
+   * @param {string} readOnlySyncUpdateHash
+   * @return {boolean}
+   */
+  OLD_verifyReadOnlySyncUpdateHash(readOnlySyncUpdateHash) {
     /*
     if (this._requiresInitialFullSync) {
       // Handle case where _initialFullSyncVerificationHash has not been set
@@ -233,28 +267,6 @@ class BidirectionalSyncObject extends PhantomCore {
 
         return false;
       } else {
-        if (this._writableSyncObject.getHash() === readOnlySyncUpdateHash) {
-          clearTimeout(this._writeSyncVerificationTimeout);
-
-          // Reset unverified hashes
-          this._unverifiedRemoteSyncHashes = [];
-
-          this.log.debug("In sync");
-
-          return true;
-        } else {
-          // TODO: Perform partial sync instead to make up for the diff
-          // Inside of this._unverifiedRemoteSyncHashes, keep state for each
-          // entry, and use a temporary SyncObject to create a diffed state,
-          // then run that as a partial update
-
-          // TODO: Remove after partial sync implemented here
-          this.forceFullSync(() => {
-            this.log.warn("Not in sync; performing full sync");
-          });
-
-          return false;
-        }
       }
     } else {
       this.forceFullSync(() => {
