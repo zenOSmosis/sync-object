@@ -13,7 +13,7 @@ const debounce = require("lodash.debounce");
  * The number of milliseconds the writable sync should wait for a hash
  * verification from the read-only peer.
  */
-const DEFAULT_WRITE_RESYNC_THRESHOLD = 5000;
+const DEFAULT_WRITE_RESYNC_THRESHOLD = 8000;
 
 /**
  * The number of milliseconds the writable sync should debounce when doing
