@@ -53,7 +53,7 @@ test("ensures EVT_WRITABLE_PARTIAL_SYNC is emit once writable updates", async t 
   const writableSyncObject = new SyncObject();
 
   const syncChannel = new BidirectionalSyncObject(writableSyncObject, null, {
-    requiresInitialFullSync: false,
+    // requiresInitialFullSync: false,
   });
 
   await Promise.all([
@@ -77,7 +77,7 @@ test("ensures EVT_WRITABLE_PARTIAL_SYNC is emit once writable updates", async t 
 });
 
 test("syncs non-synchronized states", async t => {
-  t.plan(4);
+  t.plan(5);
 
   const peerAWritableSyncObject = new SyncObject({ test: 234, foo: 456 });
   const peerAReadOnlySyncObject = new SyncObject();
@@ -89,7 +89,7 @@ test("syncs non-synchronized states", async t => {
     peerAWritableSyncObject,
     peerAReadOnlySyncObject,
     {
-      requiresInitialFullSync: false,
+      // requiresInitialFullSync: false,
     }
   );
 
@@ -97,7 +97,7 @@ test("syncs non-synchronized states", async t => {
     peerBWritableSyncObject,
     peerBReadOnlySyncObject,
     {
-      requiresInitialFullSync: false,
+      // requiresInitialFullSync: false,
     }
   );
 
@@ -132,11 +132,16 @@ test("syncs non-synchronized states", async t => {
                             peerB.once(
                               EVT_READ_ONLY_SYNC_UPDATE_HASH,
                               async updateHash => {
-                                t.ok(
-                                  peerA.verifyReadOnlySyncUpdateHash(
-                                    updateHash
-                                  ),
-                                  `peerBReadOnlySyncObject full state hash matches peerAWritableSyncObject's`
+                                t.equals(
+                                  peerA.getWritableSyncObject().getHash(),
+                                  updateHash,
+                                  `peerA writable hash matches update hash`
+                                );
+
+                                t.equals(
+                                  peerB.getReadOnlySyncObject().getHash(),
+                                  updateHash,
+                                  `peerB readOnly hash matches update hash`
                                 );
 
                                 resolve();
