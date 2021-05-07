@@ -334,7 +334,7 @@ class BidirectionalSyncObject extends PhantomCore {
 
     this._writeSyncVerificationTimeout = setTimeout(() => {
       this.forceFullSync(
-        "Full sync verification check did not occur in a timely manner"
+        "Hash verification check did not occur in a timely manner after previous full sync"
       );
     }, this._options.writeResyncThreshold);
   }
@@ -362,7 +362,7 @@ class BidirectionalSyncObject extends PhantomCore {
 
     clearTimeout(this._writeSyncVerificationTimeout);
 
-    const fullStateHash = this._writableSyncObject.getHash();
+    // const fullStateHash = this._writableSyncObject.getHash();
 
     // Add current writable hash to unverified hashes
     // this._unverifiedRemoteSyncHashes.push(fullStateHash);
@@ -373,7 +373,7 @@ class BidirectionalSyncObject extends PhantomCore {
 
     this._writeSyncVerificationTimeout = setTimeout(() => {
       this.forceFullSync(
-        "Hash verification check did not occur in a timely manner; performing full sync"
+        "Hash verification check did not occur in a timely manner after partial update"
       );
     }, this._options.writeResyncThreshold);
   }
