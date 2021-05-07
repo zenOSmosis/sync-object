@@ -13,7 +13,7 @@ const debounce = require("lodash.debounce");
  * The number of milliseconds the writable sync should wait for a hash
  * verification from the read-only peer.
  */
-const DEFAULT_WRITE_RESYNC_THRESHOLD = 10000;
+const DEFAULT_WRITE_RESYNC_THRESHOLD = 5000;
 
 /**
  * The number of milliseconds the writable sync should debounce when doing
@@ -95,25 +95,25 @@ class BidirectionalSyncObject extends PhantomCore {
       }
     );
 
-    // Sometimes the state just never stays in sync, so emit a hash every so
-    // often
-    //
-    // FIXME: Combine this w/ the heartbeat interval
-    this._pollInterval = setInterval(() => {
-      // this.emit(
-      //   EVT_READ_ONLY_SYNC_UPDATE_HASH,
-      //  this._readOnlySyncObject.getHash()
-      // );
-      this._sendReadOnlyHash();
-    }, this._options.writeResyncThreshold);
+    // IMPORTANT: This debounce value must be lower than the resync threshold
+    // or the full state update will run into a continuous loop due to the hash
+    // verification timeout
+    this.verifyReadOnlySyncUpdateHash = debounce(
+      this.verifyReadOnlySyncUpdateHash,
+      this._options.writeResyncThreshold / 2,
+      {
+        leading: false,
+        trailing: true,
+      }
+    );
+
+    this._readOnlySyncHashVerifierTimeout = null;
   }
 
   /**
    * @return {Promise<void>}
    */
   async destroy() {
-    clearInterval(this._pollInterval);
-
     clearTimeout(this._writeSyncVerificationTimeout);
 
     this._writableSyncObject.off(EVT_UPDATED, this._writableDidPartiallyUpdate);
@@ -167,6 +167,11 @@ class BidirectionalSyncObject extends PhantomCore {
    * @return void
    */
   receiveReadOnlyState(state, isMerge = true) {
+    this.log.debug(
+      `Receiving readOnly, ${isMerge ? "partial" : "full"} state`,
+      state
+    );
+
     // Update our readOnly state with what was sent
     this._readOnlySyncObject.setState(state, isMerge);
 
@@ -188,25 +193,23 @@ class BidirectionalSyncObject extends PhantomCore {
    * @return {boolean}
    */
   verifyReadOnlySyncUpdateHash(readOnlySyncUpdateHash) {
+    this.log.debug(
+      `Verifying readOnlySyncUpdateHash: ${readOnlySyncUpdateHash}`
+    );
+
     if (this._writableSyncObject.getHash() === readOnlySyncUpdateHash) {
       clearTimeout(this._writeSyncVerificationTimeout);
 
       // Reset unverified hashes
       // this._unverifiedRemoteSyncHashes = [];
 
-      this.log.debug("In sync");
+      this.log.debug("Remote readOnly in sync with our writable");
 
       return true;
     } else {
-      // TODO: Perform partial sync instead to make up for the diff
-      // Inside of this._unverifiedRemoteSyncHashes, keep state for each
-      // entry, and use a temporary SyncObject to create a diffed state,
-      // then run that as a partial update
-
-      // TODO: Remove after partial sync implemented here
-      this.forceFullSync(() => {
-        this.log.warn("Not in sync; performing full sync");
-      });
+      this.forceFullSync(
+        "ReadOnly sync update hash does not match our writable"
+      );
 
       return false;
     }
@@ -301,14 +304,14 @@ class BidirectionalSyncObject extends PhantomCore {
    * and an optional cb parameter is supplied for additional code to run after
    * the function executes.
    *
-   * @param {function} cb?
+   * @param {string} reason?
    * @return {void}
    */
-  forceFullSync(cb) {
+  forceFullSync(reason = null) {
     clearTimeout(this._writeSyncVerificationTimeout);
 
     // const fullState = this._writableSyncObject.getState();
-    const fullStateHash = this._writableSyncObject.getHash();
+    // const fullStateHash = this._writableSyncObject.getHash();
 
     /*
     if (
@@ -322,20 +325,16 @@ class BidirectionalSyncObject extends PhantomCore {
     // Add current writable hash to unverified hashes
     // this._unverifiedRemoteSyncHashes.push(fullStateHash);
 
+    this.log.warn(
+      "Performing full sync" + (reason ? ` due to: ${reason}` : "")
+    );
+
     // this._sendWriteEvent(EVT_WRITABLE_FULL_SYNC, fullState);
     this._sendFullWriteEvent();
 
-    if (typeof cb === "function") {
-      cb();
-    } else {
-      this.log.warn("Performing full sync");
-    }
-
     this._writeSyncVerificationTimeout = setTimeout(() => {
-      this.forceFullSync(() =>
-        this.log.warn(
-          "Full sync verification check did not occur in a timely manner; re-performing full sync"
-        )
+      this.forceFullSync(
+        "Full sync verification check did not occur in a timely manner"
       );
     }, this._options.writeResyncThreshold);
   }
@@ -373,10 +372,8 @@ class BidirectionalSyncObject extends PhantomCore {
     this._sendUpdateWriteEvent(updatedState);
 
     this._writeSyncVerificationTimeout = setTimeout(() => {
-      this.forceFullSync(() =>
-        this.log.warn(
-          "Hash verification check did not occur in a timely manner; performing full sync"
-        )
+      this.forceFullSync(
+        "Hash verification check did not occur in a timely manner; performing full sync"
       );
     }, this._options.writeResyncThreshold);
   }
@@ -417,11 +414,24 @@ class BidirectionalSyncObject extends PhantomCore {
    * @return {void}
    */
   _sendReadOnlyHash() {
+    clearTimeout(this._readOnlySyncHashVerifierTimeout);
+
     const readOnlySyncUpdateHash = this._readOnlySyncObject.getHash();
 
     this.log.debug(`Sending readOnlyUpdateHash: ${readOnlySyncUpdateHash}`);
 
     this.emit(EVT_READ_ONLY_SYNC_UPDATE_HASH, readOnlySyncUpdateHash);
+
+    // Send post update verification hash (double-assurance we're running the
+    // latest hash in order to prevent stale state)
+    this._readOnlySyncHashVerifierTimeout = setTimeout(() => {
+      const readOnlySyncVerificationHash = this._readOnlySyncObject.getHash();
+
+      this.log.debug(
+        `Sending readOnly post-update verification hash: ${readOnlySyncVerificationHash}`
+      );
+      this.emit(EVT_READ_ONLY_SYNC_UPDATE_HASH, readOnlySyncVerificationHash);
+    }, this._options.writeResyncThreshold);
   }
 }
 
