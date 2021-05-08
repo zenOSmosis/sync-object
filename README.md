@@ -9,9 +9,6 @@
 [codeql-image]: https://github.com/zenosmosis/sync-object/workflows/CodeQL/badge.svg
 [codeql-url]: https://github.com/zenosmosis/sync-object/actions?query=workflow%3ACodeQL
 
-
-https://github.com/zenosmosis/sync-object/workflows/codeql-analysis/badge.svg
-
 # Sync Object
 
 Share state between two peers.
