@@ -2,7 +2,7 @@
 [![ci][ci-image]][ci-url]
 [![CodeQL][codeql-image]][codeql-url]
 
-[license-image]: https://img.shields.io/github/license/zenosmosis/speaker.app
+[license-image]: https://img.shields.io/github/license/zenosmosis/sync-object
 [license-url]: https://raw.githubusercontent.com/zenOSmosis/sync-object/master/LICENSE.txt
 [ci-image]: https://github.com/zenosmosis/sync-object/actions/workflows/ci.yml/badge.svg
 [ci-url]: https://github.com/zenOSmosis/sync-object/actions/workflows/ci.yml
