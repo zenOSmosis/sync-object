@@ -175,6 +175,10 @@ class BidirectionalSyncObject extends PhantomCore {
     // Update our readOnly state with what was sent
     this._readOnlySyncObject.setState(state, isMerge);
 
+    this.log.debug(
+      `Updated readOnly to state hash: ${this._readOnlySyncObject.getHash()}`
+    );
+
     // const theirFullStateHash = this._readOnlySyncObject.getHash();
 
     // This should be compared against the other peer's writable SyncObject
@@ -197,7 +201,9 @@ class BidirectionalSyncObject extends PhantomCore {
       `Verifying readOnlySyncUpdateHash: ${readOnlySyncUpdateHash}`
     );
 
-    if (this._writableSyncObject.getHash() === readOnlySyncUpdateHash) {
+    const writableHash = this._writableSyncObject.getHash();
+
+    if (writableHash === readOnlySyncUpdateHash) {
       clearTimeout(this._writeSyncVerificationTimeout);
 
       // Reset unverified hashes
@@ -208,7 +214,7 @@ class BidirectionalSyncObject extends PhantomCore {
       return true;
     } else {
       this.forceFullSync(
-        "ReadOnly sync update hash does not match our writable"
+        `ReadOnly sync update hash does not match our writable (ours: "${writableHash}" / theirs: "${readOnlySyncUpdateHash}")`
       );
 
       return false;
