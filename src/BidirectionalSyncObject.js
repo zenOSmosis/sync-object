@@ -49,7 +49,6 @@ class BidirectionalSyncObject extends PhantomCore {
     const DEFAULT_OPTIONS = {
       writeResyncThreshold: DEFAULT_WRITE_RESYNC_THRESHOLD,
       fullStateDebounceTimeout: DEFAULT_FULL_STATE_DEBOUNCE_TIMEOUT,
-      // requiresInitialFullSync: true,
     };
 
     if (writableSyncObject && readOnlySyncObject) {
@@ -168,8 +167,6 @@ class BidirectionalSyncObject extends PhantomCore {
     this.log.debug(
       `Updated readOnly to state hash: ${this._readOnlySyncObject.getHash()}`
     );
-
-    // const theirFullStateHash = this._readOnlySyncObject.getHash();
 
     // This should be compared against the other peer's writable SyncObject
     // full state hash in order to determine if the states are in sync
