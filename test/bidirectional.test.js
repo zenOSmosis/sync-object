@@ -101,13 +101,16 @@ test("syncs non-synchronized states", async t => {
     }
   );
 
-  // Set peer A writable state and send it to peer b
+  // Set peerA writable state and send it to peerB
   await Promise.all([
     new Promise(resolve => {
+      // peerA will emit partial writable sync once it has state to update
       peerA.once(EVT_WRITABLE_PARTIAL_SYNC, async state => {
-        // peerB: Receive peerA state
         await Promise.all([
           new Promise(resolve => {
+            // peerB receives peerA's state by passing it to peerB.receiveReadOnlyState(state)
+            // In a real-life situation this would be facilitated through the network
+            // EVT_READ_ONLY_SYNC_UPDATE_HASH is emit from peerB once it processes the received state
             peerB.once(
               EVT_READ_ONLY_SYNC_UPDATE_HASH,
               async readOnlySyncUpdateHash => {
