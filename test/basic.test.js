@@ -402,3 +402,62 @@ test("does not accept non-plain object states", t => {
 
   t.end();
 });
+
+test("merge state", t => {
+  t.plan(1);
+
+  // NOTE: Despite the similarities, these data structures are not the same as
+  // MediaStreamTrack constraints
+  const initialState = {
+    audio: {
+      quality: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        sampleRate: 48000,
+        sampleSize: 16,
+      },
+    },
+    video: {
+      resolution: {
+        width: 1920,
+        height: 1280,
+      },
+    },
+  };
+
+  const secondaryState = {
+    audio: {
+      quality: {
+        autoGainControl: false,
+      },
+    },
+
+    video: {
+      resolution: {
+        width: 640,
+        height: 480,
+      },
+    },
+  };
+
+  t.deepEquals(SyncObject.mergeState(initialState, secondaryState), {
+    audio: {
+      quality: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: false,
+        sampleRate: 48000,
+        sampleSize: 16,
+      },
+    },
+    video: {
+      resolution: {
+        width: 640,
+        height: 480,
+      },
+    },
+  });
+
+  t.end();
+});
