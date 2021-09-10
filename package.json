@@ -1,7 +1,7 @@
 {
   "name": "sync-object",
-  "version": "0.0.1",
-  "description": "Over-the-wire object syncing",
+  "version": "1.0.0",
+  "description": "Over-the-wire JavaScript Object syncing",
   "author": {
     "name": "Jeremy Harris",
     "email": "jeremy.harris@zenosmosis.com",
@@ -28,6 +28,6 @@
     "lodash.debounce": "^4.0.8",
     "object-hash": "^2.1.1",
     "object-path": "^0.11.5",
-    "phantom-core": "github:zenosmosis/phantom-core"
+    "phantom-core": "github:zenosmosis/phantom-core#v1.0.0"
   }
 }
