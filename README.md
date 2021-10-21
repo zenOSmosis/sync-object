@@ -1,7 +1,7 @@
 [![MIT License][license-image]][license-url]
 [![ci][ci-image]][ci-url]
 [![CodeQL][codeql-image]][codeql-url]
-[![Vulnerabilities][snyk-image]][snyk-url]
+[![Known Vulnerabilities][snyk-image]][snyk-url]
 
 [license-image]: https://img.shields.io/github/license/zenosmosis/sync-object
 [license-url]: https://raw.githubusercontent.com/zenOSmosis/sync-object/master/LICENSE.txt
