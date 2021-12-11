@@ -1,4 +1,5 @@
 const test = require("tape-async");
+const { getClassName } = require("phantom-core");
 const SyncObject = require("../src");
 const {
   BidirectionalSyncObject,
@@ -11,17 +12,20 @@ test("instantiates without any parameters", async t => {
   t.plan(4);
 
   const syncChannel = new BidirectionalSyncObject();
-  const syncObject = new SyncObject();
+  const syncObjectClassName = getClassName(SyncObject);
+
+  const readOnlySyncObject = syncChannel.getReadOnlySyncObject();
+  const writeableSyncObject = syncChannel.getWritableSyncObject();
 
   t.equals(
-    syncChannel.getReadOnlySyncObject().getClassName(),
-    syncObject.getClassName(),
+    readOnlySyncObject.getClassName(),
+    syncObjectClassName,
     "creates default readOnly SyncObject"
   );
 
   t.equals(
-    syncChannel.getWritableSyncObject().getClassName(),
-    syncObject.getClassName(),
+    writeableSyncObject.getClassName(),
+    syncObjectClassName,
     "creates default writable SyncObject"
   );
 
