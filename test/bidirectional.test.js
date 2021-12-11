@@ -9,11 +9,12 @@ const {
 } = SyncObject;
 
 test("instantiates without any parameters", async t => {
-  t.plan(4);
+  t.plan(8);
 
   const syncChannel = new BidirectionalSyncObject();
   const syncObjectClassName = getClassName(SyncObject);
 
+  // Auto-instantiated
   const readOnlySyncObject = syncChannel.getReadOnlySyncObject();
   const writeableSyncObject = syncChannel.getWritableSyncObject();
 
@@ -36,7 +37,25 @@ test("instantiates without any parameters", async t => {
     "readOnly and writable are not the same instance"
   );
 
+  t.ok(
+    !readOnlySyncObject.getIsDestroyed(),
+    "auto-instantiated readOnlySyncObject is not destructed before syncChannel is destructed"
+  );
+  t.ok(
+    !writeableSyncObject.getIsDestroyed(),
+    "auto-instantiated writeableSyncObject is not destructed before syncChannel is destructed"
+  );
+
   t.ok(await syncChannel.destroy().then(() => true), "destroys");
+
+  t.ok(
+    readOnlySyncObject.getIsDestroyed(),
+    "auto-instantiated readOnlySyncObject is destructed when syncChannel is destructed"
+  );
+  t.ok(
+    writeableSyncObject.getIsDestroyed(),
+    "auto-instantiated writeableSyncObject is destructed when syncChannel is destructed"
+  );
 
   t.end();
 });
