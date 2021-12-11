@@ -71,6 +71,8 @@ test("ensures EVT_WRITABLE_PARTIAL_SYNC is emit once writable updates", async t 
     writableSyncObject.setState({ foo: "bar" }),
   ]);
 
+  syncChannel.registerShutdownHandler(() => writableSyncObject.destroy());
+
   syncChannel.destroy();
 
   t.end();
@@ -93,12 +95,26 @@ test("syncs non-synchronized states", async t => {
     }
   );
 
+  peerA.registerShutdownHandler(() =>
+    Promise.all([
+      peerAWritableSyncObject.destroy(),
+      peerAReadOnlySyncObject.destroy(),
+    ])
+  );
+
   const peerB = new BidirectionalSyncObject(
     peerBWritableSyncObject,
     peerBReadOnlySyncObject,
     {
       // requiresInitialFullSync: false,
     }
+  );
+
+  peerB.registerShutdownHandler(() =>
+    Promise.all([
+      peerBWritableSyncObject.destroy(),
+      peerBReadOnlySyncObject.destroy(),
+    ])
   );
 
   // Set peer A writable state and send it to peer b
