@@ -1,10 +1,9 @@
 const PhantomCore = require("phantom-core");
-const { EVT_UPDATED, EVT_DESTROYED } = PhantomCore;
+const { deepMerge, EVT_UPDATED, EVT_DESTROYED } = PhantomCore;
 const flatten = require("flat");
 const objectPath = require("object-path");
 const hash = require("object-hash");
 const { addedDiff, updatedDiff } = require("deep-object-diff");
-const deepMerge = require("deepmerge");
 const { isPlainObject } = require("is-plain-object");
 
 class SyncObject extends PhantomCore {

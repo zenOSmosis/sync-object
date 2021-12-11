@@ -1,4 +1,5 @@
 const test = require("tape-async");
+const { getClassName } = require("phantom-core");
 const SyncObject = require("../src");
 const {
   BidirectionalSyncObject,
@@ -8,20 +9,24 @@ const {
 } = SyncObject;
 
 test("instantiates without any parameters", async t => {
-  t.plan(4);
+  t.plan(8);
 
   const syncChannel = new BidirectionalSyncObject();
-  const syncObject = new SyncObject();
+  const syncObjectClassName = getClassName(SyncObject);
+
+  // Auto-instantiated
+  const readOnlySyncObject = syncChannel.getReadOnlySyncObject();
+  const writeableSyncObject = syncChannel.getWritableSyncObject();
 
   t.equals(
-    syncChannel.getReadOnlySyncObject().getClassName(),
-    syncObject.getClassName(),
+    readOnlySyncObject.getClassName(),
+    syncObjectClassName,
     "creates default readOnly SyncObject"
   );
 
   t.equals(
-    syncChannel.getWritableSyncObject().getClassName(),
-    syncObject.getClassName(),
+    writeableSyncObject.getClassName(),
+    syncObjectClassName,
     "creates default writable SyncObject"
   );
 
@@ -32,7 +37,25 @@ test("instantiates without any parameters", async t => {
     "readOnly and writable are not the same instance"
   );
 
+  t.ok(
+    !readOnlySyncObject.getIsDestroyed(),
+    "auto-instantiated readOnlySyncObject is not destructed before syncChannel is destructed"
+  );
+  t.ok(
+    !writeableSyncObject.getIsDestroyed(),
+    "auto-instantiated writeableSyncObject is not destructed before syncChannel is destructed"
+  );
+
   t.ok(await syncChannel.destroy().then(() => true), "destroys");
+
+  t.ok(
+    readOnlySyncObject.getIsDestroyed(),
+    "auto-instantiated readOnlySyncObject is destructed when syncChannel is destructed"
+  );
+  t.ok(
+    writeableSyncObject.getIsDestroyed(),
+    "auto-instantiated writeableSyncObject is destructed when syncChannel is destructed"
+  );
 
   t.end();
 });
@@ -52,9 +75,7 @@ test("ensures EVT_WRITABLE_PARTIAL_SYNC is emit once writable updates", async t 
 
   const writableSyncObject = new SyncObject();
 
-  const syncChannel = new BidirectionalSyncObject(writableSyncObject, null, {
-    // requiresInitialFullSync: false,
-  });
+  const syncChannel = new BidirectionalSyncObject(writableSyncObject, null);
 
   await Promise.all([
     new Promise(resolve => {
@@ -70,6 +91,8 @@ test("ensures EVT_WRITABLE_PARTIAL_SYNC is emit once writable updates", async t 
 
     writableSyncObject.setState({ foo: "bar" }),
   ]);
+
+  syncChannel.registerShutdownHandler(() => writableSyncObject.destroy());
 
   syncChannel.destroy();
 
@@ -87,18 +110,26 @@ test("syncs non-synchronized states", async t => {
 
   const peerA = new BidirectionalSyncObject(
     peerAWritableSyncObject,
-    peerAReadOnlySyncObject,
-    {
-      // requiresInitialFullSync: false,
-    }
+    peerAReadOnlySyncObject
+  );
+
+  peerA.registerShutdownHandler(() =>
+    Promise.all([
+      peerAWritableSyncObject.destroy(),
+      peerAReadOnlySyncObject.destroy(),
+    ])
   );
 
   const peerB = new BidirectionalSyncObject(
     peerBWritableSyncObject,
-    peerBReadOnlySyncObject,
-    {
-      // requiresInitialFullSync: false,
-    }
+    peerBReadOnlySyncObject
+  );
+
+  peerB.registerShutdownHandler(() =>
+    Promise.all([
+      peerBWritableSyncObject.destroy(),
+      peerBReadOnlySyncObject.destroy(),
+    ])
   );
 
   // Set peer A writable state and send it to peer b

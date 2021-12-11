@@ -1,4 +1,5 @@
 const test = require("tape");
+const { deepMerge } = require("phantom-core");
 const SyncObject = require("../src");
 const { EVT_UPDATED } = SyncObject;
 
@@ -441,7 +442,7 @@ test("merge state", t => {
     },
   };
 
-  t.deepEquals(SyncObject.mergeState(initialState, secondaryState), {
+  t.deepEquals(deepMerge(initialState, secondaryState), {
     audio: {
       quality: {
         echoCancellation: true,
