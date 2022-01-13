@@ -10,17 +10,6 @@ const cloneDeep = require("lodash.clonedeep");
 // TODO: Document
 class SyncObject extends PhantomCore {
   /**
-   * Recursively merges overridingState on top of initialState.
-   *
-   * @param {Object} initialState
-   * @param {Object} overridingState
-   * @return {Object}
-   */
-  static mergeState(initialState, overridingState) {
-    return PhantomCore.mergeOptions(initialState, overridingState);
-  }
-
-  /**
    * Ensures that the supplied state can be serialized.
    *
    * @throws {TypeError} If passed state cannot be validated.
