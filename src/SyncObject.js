@@ -5,19 +5,16 @@ const objectPath = require("object-path");
 const hash = require("object-hash");
 const { addedDiff, updatedDiff } = require("deep-object-diff");
 const { isPlainObject } = require("is-plain-object");
+const cloneDeep = require("lodash.clonedeep");
 
+/**
+ * A serialized state management object intended to be used for network
+ * syncing.
+ *
+ * It utilizes a recursive differential algorithm to keep over-the-air updates
+ * as light as possible.
+ */
 class SyncObject extends PhantomCore {
-  /**
-   * Recursively merges overridingState on top of initialState.
-   *
-   * @param {Object} initialState
-   * @param {Object} overridingState
-   * @return {Object}
-   */
-  static mergeState(initialState, overridingState) {
-    return PhantomCore.mergeOptions(initialState, overridingState);
-  }
-
   /**
    * Ensures that the supplied state can be serialized.
    *
@@ -108,6 +105,7 @@ class SyncObject extends PhantomCore {
    * otherwise.
    * @param {boolean} isMerge? [default = true] Non-merging will overwrite the
    * entire state.
+   * @return {void}
    */
   setState(updatedState, isMerge = true) {
     SyncObject.validateState(updatedState);
@@ -117,6 +115,14 @@ class SyncObject extends PhantomCore {
 
       this.emit(EVT_UPDATED, updatedState);
     } else {
+      // FIXME: (jh) This fixes an issue in the ReShell version of Speaker.app
+      // where the virtual server would not distribute chat messages to the
+      // other peers, however, I've not ben able to reproduce the test case
+      // here, exactly.  I added the multiple-sync-object.test.js file to try
+      // to reproduce it, but it doesn't reproduce the issue otherwise
+      // experienced in Speaker.app.
+      updatedState = cloneDeep(updatedState);
+
       // Do the change detection before changing the state
       const diffedUpdatedState = deepMerge(
         addedDiff(this._state, updatedState),
