@@ -5,7 +5,9 @@ const objectPath = require("object-path");
 const hash = require("object-hash");
 const { addedDiff, updatedDiff } = require("deep-object-diff");
 const { isPlainObject } = require("is-plain-object");
+const cloneDeep = require("lodash.clonedeep");
 
+// TODO: Document
 class SyncObject extends PhantomCore {
   /**
    * Recursively merges overridingState on top of initialState.
@@ -108,6 +110,7 @@ class SyncObject extends PhantomCore {
    * otherwise.
    * @param {boolean} isMerge? [default = true] Non-merging will overwrite the
    * entire state.
+   * @return {void}
    */
   setState(updatedState, isMerge = true) {
     SyncObject.validateState(updatedState);
@@ -117,6 +120,9 @@ class SyncObject extends PhantomCore {
 
       this.emit(EVT_UPDATED, updatedState);
     } else {
+      // TODO: Document
+      updatedState = cloneDeep(updatedState);
+
       // Do the change detection before changing the state
       const diffedUpdatedState = deepMerge(
         addedDiff(this._state, updatedState),
