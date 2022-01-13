@@ -7,7 +7,13 @@ const { addedDiff, updatedDiff } = require("deep-object-diff");
 const { isPlainObject } = require("is-plain-object");
 const cloneDeep = require("lodash.clonedeep");
 
-// TODO: Document
+/**
+ * A serialized state management object intended to be used for network
+ * syncing.
+ *
+ * It utilizes a recursive differential algorithm to keep over-the-air updates
+ * as light as possible.
+ */
 class SyncObject extends PhantomCore {
   /**
    * Ensures that the supplied state can be serialized.
