@@ -109,7 +109,12 @@ class SyncObject extends PhantomCore {
 
       this.emit(EVT_UPDATED, updatedState);
     } else {
-      // TODO: Document
+      // FIXME: (jh) This fixes an issue in the ReShell version of Speaker.app
+      // where the virtual server would not distribute chat messages to the
+      // other peers, however, I've not ben able to reproduce the test case
+      // here, exactly.  I added the multiple-sync-object.test.js file to try
+      // to reproduce it, but it doesn't reproduce the issue otherwise
+      // experienced in Speaker.app.
       updatedState = cloneDeep(updatedState);
 
       // Do the change detection before changing the state
