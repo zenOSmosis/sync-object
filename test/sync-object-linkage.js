@@ -59,37 +59,41 @@ test("sync objects can be linked together", t => {
     isTyping: false,
   });
 
-  t.deepEquals(s1.getState(), {
-    peers: {
-      "e9affe4b-5fac-44f1-aa0e-520d1015d8ad": {
-        name: "Clemens O'Keefe",
-        description:
-          "🚀  Fourth Generation Agitator 📈 Working on the intersection of Plant Medicines and Psychedelic Research 🤩 Played chess with Harry Styles at the baggage claim at LAX once 🗣 Reddit/Crypto/Energy Healing 💪 Building major partnerships that drive resentment",
-        detectedDevice: {},
-        deviceAddress: "0x296f636B0878bE581bA0de2ef1a366b851242571",
-        isMuted: true,
-        media: "75496223-07cd-4330-9d38-a8d77439808b",
-        inCompositionChatMessage: {
-          id: "334e8935-a554-4f5f-9b82-66f85a3d003a",
-          createDate: "2022-01-13T03:31:54.447Z",
-          body: "111",
-          isTyping: false,
+  t.deepEquals(
+    s1.getState(),
+    {
+      peers: {
+        "e9affe4b-5fac-44f1-aa0e-520d1015d8ad": {
+          name: "Clemens O'Keefe",
+          description:
+            "🚀  Fourth Generation Agitator 📈 Working on the intersection of Plant Medicines and Psychedelic Research 🤩 Played chess with Harry Styles at the baggage claim at LAX once 🗣 Reddit/Crypto/Energy Healing 💪 Building major partnerships that drive resentment",
+          detectedDevice: {},
+          deviceAddress: "0x296f636B0878bE581bA0de2ef1a366b851242571",
+          isMuted: true,
+          media: "75496223-07cd-4330-9d38-a8d77439808b",
+          inCompositionChatMessage: {
+            id: "334e8935-a554-4f5f-9b82-66f85a3d003a",
+            createDate: "2022-01-13T03:31:54.447Z",
+            body: "111",
+            isTyping: false,
+          },
+          sessionChatMessages: {},
         },
-        sessionChatMessages: {},
-      },
-      "f3e00058-2304-4742-bad7-b3b2a62fb2aa": {
-        name: "Clemens O'Keefe",
-        description:
-          "🚀  Fourth Generation Agitator 📈 Working on the intersection of Plant Medicines and Psychedelic Research 🤩 Played chess with Harry Styles at the baggage claim at LAX once 🗣 Reddit/Crypto/Energy Healing 💪 Building major partnerships that drive resentment",
-        detectedDevice: {},
-        deviceAddress: "0x296f636B0878bE581bA0de2ef1a366b851242571",
-        isMuted: true,
-        media: "6c75b9bd-cc20-464d-b9aa-6243b05af064",
-        inCompositionChatMessage: {},
-        sessionChatMessages: {},
+        "f3e00058-2304-4742-bad7-b3b2a62fb2aa": {
+          name: "Clemens O'Keefe",
+          description:
+            "🚀  Fourth Generation Agitator 📈 Working on the intersection of Plant Medicines and Psychedelic Research 🤩 Played chess with Harry Styles at the baggage claim at LAX once 🗣 Reddit/Crypto/Energy Healing 💪 Building major partnerships that drive resentment",
+          detectedDevice: {},
+          deviceAddress: "0x296f636B0878bE581bA0de2ef1a366b851242571",
+          isMuted: true,
+          media: "6c75b9bd-cc20-464d-b9aa-6243b05af064",
+          inCompositionChatMessage: {},
+          sessionChatMessages: {},
+        },
       },
     },
-  });
+    "s1 instance matches expected after setting s2 state"
+  );
 
   s2.setState({
     id: null,
@@ -98,73 +102,81 @@ test("sync objects can be linked together", t => {
     isTyping: true,
   });
 
-  t.deepEquals(s1.getState(), {
-    peers: {
-      "e9affe4b-5fac-44f1-aa0e-520d1015d8ad": {
-        name: "Clemens O'Keefe",
-        description:
-          "🚀  Fourth Generation Agitator 📈 Working on the intersection of Plant Medicines and Psychedelic Research 🤩 Played chess with Harry Styles at the baggage claim at LAX once 🗣 Reddit/Crypto/Energy Healing 💪 Building major partnerships that drive resentment",
-        detectedDevice: {},
-        deviceAddress: "0x296f636B0878bE581bA0de2ef1a366b851242571",
-        isMuted: true,
-        media: "75496223-07cd-4330-9d38-a8d77439808b",
-        inCompositionChatMessage: {
-          id: null,
-          createDate: null,
-          body: null,
-          isTyping: true,
+  t.deepEquals(
+    s1.getState(),
+    {
+      peers: {
+        "e9affe4b-5fac-44f1-aa0e-520d1015d8ad": {
+          name: "Clemens O'Keefe",
+          description:
+            "🚀  Fourth Generation Agitator 📈 Working on the intersection of Plant Medicines and Psychedelic Research 🤩 Played chess with Harry Styles at the baggage claim at LAX once 🗣 Reddit/Crypto/Energy Healing 💪 Building major partnerships that drive resentment",
+          detectedDevice: {},
+          deviceAddress: "0x296f636B0878bE581bA0de2ef1a366b851242571",
+          isMuted: true,
+          media: "75496223-07cd-4330-9d38-a8d77439808b",
+          inCompositionChatMessage: {
+            id: null,
+            createDate: null,
+            body: null,
+            isTyping: true,
+          },
+          sessionChatMessages: {},
         },
-        sessionChatMessages: {},
-      },
-      "f3e00058-2304-4742-bad7-b3b2a62fb2aa": {
-        name: "Clemens O'Keefe",
-        description:
-          "🚀  Fourth Generation Agitator 📈 Working on the intersection of Plant Medicines and Psychedelic Research 🤩 Played chess with Harry Styles at the baggage claim at LAX once 🗣 Reddit/Crypto/Energy Healing 💪 Building major partnerships that drive resentment",
-        detectedDevice: {},
-        deviceAddress: "0x296f636B0878bE581bA0de2ef1a366b851242571",
-        isMuted: true,
-        media: "6c75b9bd-cc20-464d-b9aa-6243b05af064",
-        inCompositionChatMessage: {},
-        sessionChatMessages: {},
+        "f3e00058-2304-4742-bad7-b3b2a62fb2aa": {
+          name: "Clemens O'Keefe",
+          description:
+            "🚀  Fourth Generation Agitator 📈 Working on the intersection of Plant Medicines and Psychedelic Research 🤩 Played chess with Harry Styles at the baggage claim at LAX once 🗣 Reddit/Crypto/Energy Healing 💪 Building major partnerships that drive resentment",
+          detectedDevice: {},
+          deviceAddress: "0x296f636B0878bE581bA0de2ef1a366b851242571",
+          isMuted: true,
+          media: "6c75b9bd-cc20-464d-b9aa-6243b05af064",
+          inCompositionChatMessage: {},
+          sessionChatMessages: {},
+        },
       },
     },
-  });
+    "s1 instance matches expected after setting s2 state again"
+  );
 
   s2.setState({
     isTyping: false,
   });
 
-  t.deepEquals(s1.getState(), {
-    peers: {
-      "e9affe4b-5fac-44f1-aa0e-520d1015d8ad": {
-        name: "Clemens O'Keefe",
-        description:
-          "🚀  Fourth Generation Agitator 📈 Working on the intersection of Plant Medicines and Psychedelic Research 🤩 Played chess with Harry Styles at the baggage claim at LAX once 🗣 Reddit/Crypto/Energy Healing 💪 Building major partnerships that drive resentment",
-        detectedDevice: {},
-        deviceAddress: "0x296f636B0878bE581bA0de2ef1a366b851242571",
-        isMuted: true,
-        media: "75496223-07cd-4330-9d38-a8d77439808b",
-        inCompositionChatMessage: {
-          id: null,
-          createDate: null,
-          body: null,
-          isTyping: false,
+  t.deepEquals(
+    s1.getState(),
+    {
+      peers: {
+        "e9affe4b-5fac-44f1-aa0e-520d1015d8ad": {
+          name: "Clemens O'Keefe",
+          description:
+            "🚀  Fourth Generation Agitator 📈 Working on the intersection of Plant Medicines and Psychedelic Research 🤩 Played chess with Harry Styles at the baggage claim at LAX once 🗣 Reddit/Crypto/Energy Healing 💪 Building major partnerships that drive resentment",
+          detectedDevice: {},
+          deviceAddress: "0x296f636B0878bE581bA0de2ef1a366b851242571",
+          isMuted: true,
+          media: "75496223-07cd-4330-9d38-a8d77439808b",
+          inCompositionChatMessage: {
+            id: null,
+            createDate: null,
+            body: null,
+            isTyping: false,
+          },
+          sessionChatMessages: {},
         },
-        sessionChatMessages: {},
-      },
-      "f3e00058-2304-4742-bad7-b3b2a62fb2aa": {
-        name: "Clemens O'Keefe",
-        description:
-          "🚀  Fourth Generation Agitator 📈 Working on the intersection of Plant Medicines and Psychedelic Research 🤩 Played chess with Harry Styles at the baggage claim at LAX once 🗣 Reddit/Crypto/Energy Healing 💪 Building major partnerships that drive resentment",
-        detectedDevice: {},
-        deviceAddress: "0x296f636B0878bE581bA0de2ef1a366b851242571",
-        isMuted: true,
-        media: "6c75b9bd-cc20-464d-b9aa-6243b05af064",
-        inCompositionChatMessage: {},
-        sessionChatMessages: {},
+        "f3e00058-2304-4742-bad7-b3b2a62fb2aa": {
+          name: "Clemens O'Keefe",
+          description:
+            "🚀  Fourth Generation Agitator 📈 Working on the intersection of Plant Medicines and Psychedelic Research 🤩 Played chess with Harry Styles at the baggage claim at LAX once 🗣 Reddit/Crypto/Energy Healing 💪 Building major partnerships that drive resentment",
+          detectedDevice: {},
+          deviceAddress: "0x296f636B0878bE581bA0de2ef1a366b851242571",
+          isMuted: true,
+          media: "6c75b9bd-cc20-464d-b9aa-6243b05af064",
+          inCompositionChatMessage: {},
+          sessionChatMessages: {},
+        },
       },
     },
-  });
+    "s1 instance matches expected after setting s2 state yet again"
+  );
 
   t.end();
 });
