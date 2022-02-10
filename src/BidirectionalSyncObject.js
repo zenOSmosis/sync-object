@@ -123,7 +123,7 @@ class BidirectionalSyncObject extends PhantomCore {
     const syncObject = new SyncObject();
 
     // Destroy the temporary SyncObject when the linker is destroyed
-    this.registerShutdownHandler(() => syncObject.destroy());
+    this.registerCleanupHandler(() => syncObject.destroy());
 
     return syncObject;
   }
