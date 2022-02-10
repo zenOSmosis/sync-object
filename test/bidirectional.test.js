@@ -92,7 +92,7 @@ test("ensures EVT_WRITABLE_PARTIAL_SYNC is emit once writable updates", async t 
     writableSyncObject.setState({ foo: "bar" }),
   ]);
 
-  syncChannel.registerShutdownHandler(() => writableSyncObject.destroy());
+  syncChannel.registerCleanupHandler(() => writableSyncObject.destroy());
 
   syncChannel.destroy();
 
@@ -113,7 +113,7 @@ test("syncs non-synchronized states", async t => {
     peerAReadOnlySyncObject
   );
 
-  peerA.registerShutdownHandler(() =>
+  peerA.registerCleanupHandler(() =>
     Promise.all([
       peerAWritableSyncObject.destroy(),
       peerAReadOnlySyncObject.destroy(),
@@ -125,7 +125,7 @@ test("syncs non-synchronized states", async t => {
     peerBReadOnlySyncObject
   );
 
-  peerB.registerShutdownHandler(() =>
+  peerB.registerCleanupHandler(() =>
     Promise.all([
       peerBWritableSyncObject.destroy(),
       peerBReadOnlySyncObject.destroy(),
