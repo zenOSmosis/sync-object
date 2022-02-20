@@ -101,19 +101,19 @@ class SyncObject extends PhantomCore {
    * @emits EVT_UPDATED With changed state. IMPORTANT: This is only the changed
    * state, and does not represent values which were the same before updating.
    *
-   * @param {Object} updatedState Partial state, if merging; complete state
+   * @param {Object} partialNextState Partial state, if merging; complete state
    * otherwise.
    * @param {boolean} isMerge? [default = true] Non-merging will overwrite the
    * entire state.
    * @return {void}
    */
-  setState(updatedState, isMerge = true) {
-    SyncObject.validateState(updatedState);
+  setState(partialNextState, isMerge = true) {
+    SyncObject.validateState(partialNextState);
 
     if (!isMerge) {
-      this._state = updatedState;
+      this._state = partialNextState;
 
-      this.emit(EVT_UPDATED, updatedState);
+      this.emit(EVT_UPDATED, partialNextState);
     } else {
       // FIXME: (jh) This fixes an issue in the ReShell version of Speaker.app
       // where the virtual server would not distribute chat messages to the
@@ -121,18 +121,18 @@ class SyncObject extends PhantomCore {
       // here, exactly.  I added the multiple-sync-object.test.js file to try
       // to reproduce it, but it doesn't reproduce the issue otherwise
       // experienced in Speaker.app.
-      updatedState = cloneDeep(updatedState);
+      partialNextState = cloneDeep(partialNextState);
 
       // Do the change detection before changing the state
       const diffedUpdatedState = deepMerge(
-        addedDiff(this._state, updatedState),
-        updatedDiff(this._state, updatedState)
+        addedDiff(this._state, partialNextState),
+        updatedDiff(this._state, partialNextState)
       );
 
       // Flatten and walk over the updated state, merging in each value to the
       // class state
-      const flatUpdatedState = flatten(updatedState);
-      for (const [path, value] of Object.entries(flatUpdatedState)) {
+      const flatPartialNextState = flatten(partialNextState);
+      for (const [path, value] of Object.entries(flatPartialNextState)) {
         try {
           objectPath.set(this._state, path, value);
         } catch (err) {

@@ -3,11 +3,11 @@ const { EVT_DESTROYED } = PhantomCore;
 const SyncObject = require("./SyncObject");
 const { EVT_UPDATED } = SyncObject;
 
+const debounce = require("debounce");
+
 const EVT_WRITABLE_PARTIAL_SYNC = "writable-sync-updated";
 const EVT_WRITABLE_FULL_SYNC = "writable-full-sync";
 const EVT_READ_ONLY_SYNC_UPDATE_HASH = "read-only-sync-update-hash";
-
-const debounce = require("lodash.debounce");
 
 /**
  * The number of milliseconds the writable sync should wait for a hash
@@ -78,11 +78,12 @@ class BidirectionalSyncObject extends PhantomCore {
     this.forceFullSync = debounce(
       this.forceFullSync,
       this._options.fullStateDebounceTimeout,
-      {
-        leading: false,
-        trailing: true,
-      }
+      // Use trailing edge
+      false
     );
+    this.registerCleanupHandler(() => {
+      this.forceFullSync.clear();
+    });
 
     // IMPORTANT: This debounce value must be lower than the resync threshold
     // or the full state update will run into a continuous loop due to the hash
@@ -90,11 +91,12 @@ class BidirectionalSyncObject extends PhantomCore {
     this.verifyReadOnlySyncUpdateHash = debounce(
       this.verifyReadOnlySyncUpdateHash,
       this._options.writeResyncThreshold / 2,
-      {
-        leading: false,
-        trailing: true,
-      }
+      // Use trailing edge
+      false
     );
+    this.registerCleanupHandler(() => {
+      this.verifyReadOnlySyncUpdateHash.clear();
+    });
 
     this._readOnlySyncHashVerifierTimeout = null;
   }
@@ -240,14 +242,14 @@ class BidirectionalSyncObject extends PhantomCore {
    *
    * This is handled via the writeableSyncObject.
    *
-   * @param {Object} updatedState NOTE: This state will typically be the changed
+   * @param {Object} partialNextState NOTE: This state will typically be the changed
    * state, and not the full state of the calling SyncObject.
    * @return void
    */
-  _writableDidPartiallyUpdate(updatedState) {
+  _writableDidPartiallyUpdate(partialNextState) {
     clearTimeout(this._writeSyncVerificationTimeout);
 
-    this._sendUpdateWriteEvent(updatedState);
+    this._sendUpdateWriteEvent(partialNextState);
 
     this._writeSyncVerificationTimeout = setTimeout(() => {
       this.forceFullSync(
@@ -259,19 +261,19 @@ class BidirectionalSyncObject extends PhantomCore {
   /**
    * Sends the given updated state to the other peer.
    *
-   * TODO: Debounce this, merging updatedStates together.
+   * TODO: Debounce this, merging partialNextStates together.
    *
-   * @param {Object} updatedState
+   * @param {Object} partialNextState
    * @return {void}
    */
-  _sendUpdateWriteEvent(updatedState) {
-    if (!updatedState) {
+  _sendUpdateWriteEvent(partialNextState) {
+    if (!partialNextState) {
       throw new Error("state must be set");
     }
 
-    this.log.debug("Sending updated state", updatedState);
+    this.log.debug("Sending updated state", partialNextState);
 
-    this.emit(EVT_WRITABLE_PARTIAL_SYNC, updatedState);
+    this.emit(EVT_WRITABLE_PARTIAL_SYNC, partialNextState);
   }
 
   /**
