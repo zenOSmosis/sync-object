@@ -75,16 +75,16 @@ class BidirectionalSyncObject extends PhantomCore {
 
     this._writeSyncVerificationTimeout = null;
 
-    // FIXME: (jh) Clean up debounce handler on destruct
     this.forceFullSync = debounce(
       this.forceFullSync,
       this._options.fullStateDebounceTimeout,
       // Use trailing edge
       false
     );
+    this.registerCleanupHandler(() => {
+      this.forceFullSync.clear();
+    });
 
-    // FIXME: (jh) Clean up debounce handler on destruct
-    //
     // IMPORTANT: This debounce value must be lower than the resync threshold
     // or the full state update will run into a continuous loop due to the hash
     // verification timeout
@@ -94,6 +94,9 @@ class BidirectionalSyncObject extends PhantomCore {
       // Use trailing edge
       false
     );
+    this.registerCleanupHandler(() => {
+      this.verifyReadOnlySyncUpdateHash.clear();
+    });
 
     this._readOnlySyncHashVerifierTimeout = null;
   }
