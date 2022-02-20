@@ -240,14 +240,14 @@ class BidirectionalSyncObject extends PhantomCore {
    *
    * This is handled via the writeableSyncObject.
    *
-   * @param {Object} updatedState NOTE: This state will typically be the changed
+   * @param {Object} partialNextState NOTE: This state will typically be the changed
    * state, and not the full state of the calling SyncObject.
    * @return void
    */
-  _writableDidPartiallyUpdate(updatedState) {
+  _writableDidPartiallyUpdate(partialNextState) {
     clearTimeout(this._writeSyncVerificationTimeout);
 
-    this._sendUpdateWriteEvent(updatedState);
+    this._sendUpdateWriteEvent(partialNextState);
 
     this._writeSyncVerificationTimeout = setTimeout(() => {
       this.forceFullSync(
@@ -259,19 +259,19 @@ class BidirectionalSyncObject extends PhantomCore {
   /**
    * Sends the given updated state to the other peer.
    *
-   * TODO: Debounce this, merging updatedStates together.
+   * TODO: Debounce this, merging partialNextStates together.
    *
-   * @param {Object} updatedState
+   * @param {Object} partialNextState
    * @return {void}
    */
-  _sendUpdateWriteEvent(updatedState) {
-    if (!updatedState) {
+  _sendUpdateWriteEvent(partialNextState) {
+    if (!partialNextState) {
       throw new Error("state must be set");
     }
 
-    this.log.debug("Sending updated state", updatedState);
+    this.log.debug("Sending updated state", partialNextState);
 
-    this.emit(EVT_WRITABLE_PARTIAL_SYNC, updatedState);
+    this.emit(EVT_WRITABLE_PARTIAL_SYNC, partialNextState);
   }
 
   /**
