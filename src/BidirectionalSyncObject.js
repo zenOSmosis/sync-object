@@ -3,11 +3,11 @@ const { EVT_DESTROYED } = PhantomCore;
 const SyncObject = require("./SyncObject");
 const { EVT_UPDATED } = SyncObject;
 
+const debounce = require("debounce");
+
 const EVT_WRITABLE_PARTIAL_SYNC = "writable-sync-updated";
 const EVT_WRITABLE_FULL_SYNC = "writable-full-sync";
 const EVT_READ_ONLY_SYNC_UPDATE_HASH = "read-only-sync-update-hash";
-
-const debounce = require("lodash.debounce");
 
 /**
  * The number of milliseconds the writable sync should wait for a hash
@@ -75,25 +75,24 @@ class BidirectionalSyncObject extends PhantomCore {
 
     this._writeSyncVerificationTimeout = null;
 
+    // FIXME: (jh) Clean up debounce handler on destruct
     this.forceFullSync = debounce(
       this.forceFullSync,
       this._options.fullStateDebounceTimeout,
-      {
-        leading: false,
-        trailing: true,
-      }
+      // Use trailing edge
+      false
     );
 
+    // FIXME: (jh) Clean up debounce handler on destruct
+    //
     // IMPORTANT: This debounce value must be lower than the resync threshold
     // or the full state update will run into a continuous loop due to the hash
     // verification timeout
     this.verifyReadOnlySyncUpdateHash = debounce(
       this.verifyReadOnlySyncUpdateHash,
       this._options.writeResyncThreshold / 2,
-      {
-        leading: false,
-        trailing: true,
-      }
+      // Use trailing edge
+      false
     );
 
     this._readOnlySyncHashVerifierTimeout = null;
