@@ -1,6 +1,6 @@
 {
   "name": "sync-object",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Over-the-wire JavaScript Object syncing",
   "author": {
     "name": "zenOSmosis",
@@ -28,6 +28,6 @@
     "lodash.debounce": "^4.0.8",
     "object-hash": "^2.2.0",
     "object-path": "^0.11.8",
-    "phantom-core": "github:zenosmosis/phantom-core#v2.6.0"
+    "phantom-core": "github:zenosmosis/phantom-core#v2.6.1"
   }
 }
