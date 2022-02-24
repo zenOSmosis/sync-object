@@ -18,7 +18,7 @@
 
 # Sync Object
 
-Share a serializable JavaScript Object between two or more peers, using a recursive differential algorithm to keep over-the-air updates as light as possible.
+Share a serializable JavaScript Object between two or more peers, using a recursive differential algorithm to keep over-the-air updates as light as possible, even for deeply nested objects.
 
 Utilized in https://speaker.app / https://github.com/zenOSmosis/speaker.app in order to keep WebRTC participant states in sync over WebRTC data channels.
 
@@ -27,6 +27,8 @@ Built on top of [PhantomCore](https://github.com/zenOSmosis/phantom-core),an Eve
 ## Note Before Using
 
 Documentation is still a work in progress and the API is subject to change.
+
+Currently does not handle arrays for property values; must use dictionary-type objects.
 
 ## License
 
