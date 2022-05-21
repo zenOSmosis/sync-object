@@ -1,5 +1,9 @@
-const PhantomCore = require("phantom-core");
-const { deepMerge, EVT_UPDATED, EVT_DESTROYED } = PhantomCore;
+const {
+  PhantomCore,
+  EVT_UPDATED,
+  EVT_DESTROYED,
+  deepMerge,
+} = require("phantom-core");
 const flatten = require("flat");
 const objectPath = require("object-path");
 const hash = require("object-hash");

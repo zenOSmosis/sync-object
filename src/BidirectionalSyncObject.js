@@ -1,5 +1,4 @@
-const PhantomCore = require("phantom-core");
-const { EVT_DESTROYED } = PhantomCore;
+const { PhantomCore, EVT_DESTROYED } = require("phantom-core");
 const SyncObject = require("./SyncObject");
 const { EVT_UPDATED } = SyncObject;
 
