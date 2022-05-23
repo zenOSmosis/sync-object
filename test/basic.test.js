@@ -1,7 +1,7 @@
 const test = require("tape");
 const { deepMerge } = require("phantom-core");
 const SyncObject = require("../src");
-const { EVT_UPDATED } = SyncObject;
+const { EVT_UPDATE } = SyncObject;
 
 test("instantiates without any parameters", async t => {
   t.plan(2);
@@ -138,7 +138,7 @@ test("handles diff state updates", async t => {
 
   await Promise.all([
     new Promise(resolve =>
-      sync.once(EVT_UPDATED, updatedState => {
+      sync.once(EVT_UPDATE, updatedState => {
         t.deepEquals(
           updatedState,
           { other: 101112 },
@@ -154,7 +154,7 @@ test("handles diff state updates", async t => {
 
   await Promise.all([
     new Promise(resolve =>
-      sync.once(EVT_UPDATED, updatedState => {
+      sync.once(EVT_UPDATE, updatedState => {
         t.deepEquals(
           updatedState,
           { test: "abcde", foo: "bar" },
@@ -170,7 +170,7 @@ test("handles diff state updates", async t => {
 
   await Promise.all([
     new Promise(resolve =>
-      sync.once(EVT_UPDATED, updatedState => {
+      sync.once(EVT_UPDATE, updatedState => {
         t.deepEquals(
           updatedState,
           { other: undefined },
@@ -186,7 +186,7 @@ test("handles diff state updates", async t => {
 
   await Promise.all([
     new Promise(resolve =>
-      sync.once(EVT_UPDATED, updatedState => {
+      sync.once(EVT_UPDATE, updatedState => {
         t.deepEquals(updatedState, { foo: null }, "diffs null state");
 
         resolve();
@@ -213,7 +213,7 @@ test("handles post-null recovery", async t => {
 
   await Promise.all([
     new Promise(resolve =>
-      sync.once(EVT_UPDATED, () => {
+      sync.once(EVT_UPDATE, () => {
         t.deepEquals(sync.getState(), {
           peers: {
             ["abcde"]: {
@@ -236,7 +236,7 @@ test("handles post-null recovery", async t => {
 
   await Promise.all([
     new Promise(resolve =>
-      sync.once(EVT_UPDATED, () => {
+      sync.once(EVT_UPDATE, () => {
         t.deepEquals(sync.getState(), {
           peers: {
             ["abcde"]: {
@@ -264,7 +264,7 @@ test("handles post-null recovery", async t => {
   t.end();
 });
 
-test("handles EVT_UPDATED diff", async t => {
+test("handles EVT_UPDATE diff", async t => {
   t.plan(4);
 
   const sync = new SyncObject({
@@ -281,7 +281,7 @@ test("handles EVT_UPDATED diff", async t => {
 
   await Promise.all([
     new Promise(resolve => {
-      sync.once(EVT_UPDATED, changedState => {
+      sync.once(EVT_UPDATE, changedState => {
         t.deepEquals(
           changedState,
           {
@@ -312,7 +312,7 @@ test("handles EVT_UPDATED diff", async t => {
 
   await Promise.all([
     new Promise(resolve => {
-      sync.once(EVT_UPDATED, changedState => {
+      sync.once(EVT_UPDATE, changedState => {
         t.deepEquals(
           changedState,
           {
@@ -337,7 +337,7 @@ test("handles EVT_UPDATED diff", async t => {
   await Promise.all([
     Promise.race([
       new Promise(() => {
-        sync.once(EVT_UPDATED, () => {
+        sync.once(EVT_UPDATE, () => {
           throw new Error("Should not get here");
         });
       }),
@@ -346,7 +346,7 @@ test("handles EVT_UPDATED diff", async t => {
         setTimeout(() => {
           t.ok(
             true,
-            "does not trigger EVT_UPDATED if there is no changed state"
+            "does not trigger EVT_UPDATE if there is no changed state"
           );
 
           resolve();
@@ -380,7 +380,7 @@ test("handles EVT_UPDATED diff", async t => {
         },
       },
     },
-    "merges successfully after multiple EVT_UPDATED diff checks"
+    "merges successfully after multiple EVT_UPDATE diff checks"
   );
 
   t.end();

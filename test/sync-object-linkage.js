@@ -1,6 +1,6 @@
 const test = require("tape");
 const SyncObject = require("../src");
-const { EVT_UPDATED } = SyncObject;
+const { EVT_UPDATE } = SyncObject;
 
 test("sync objects can be linked together", t => {
   t.plan(3);
@@ -42,7 +42,7 @@ test("sync objects can be linked together", t => {
     },
   });
 
-  s2.on(EVT_UPDATED, updatedState => {
+  s2.on(EVT_UPDATE, updatedState => {
     s1.setState({
       peers: {
         "e9affe4b-5fac-44f1-aa0e-520d1015d8ad": {
