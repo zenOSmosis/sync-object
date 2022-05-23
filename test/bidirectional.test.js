@@ -38,22 +38,22 @@ test("instantiates without any parameters", async t => {
   );
 
   t.ok(
-    !readOnlySyncObject.UNSAFE_getIsDestroyed(),
+    !readOnlySyncObject.getIsDestroyed(),
     "auto-instantiated readOnlySyncObject is not destructed before syncChannel is destructed"
   );
   t.ok(
-    !writeableSyncObject.UNSAFE_getIsDestroyed(),
+    !writeableSyncObject.getIsDestroyed(),
     "auto-instantiated writeableSyncObject is not destructed before syncChannel is destructed"
   );
 
   t.ok(await syncChannel.destroy().then(() => true), "destroys");
 
   t.ok(
-    readOnlySyncObject.UNSAFE_getIsDestroyed(),
+    readOnlySyncObject.getIsDestroyed(),
     "auto-instantiated readOnlySyncObject is destructed when syncChannel is destructed"
   );
   t.ok(
-    writeableSyncObject.UNSAFE_getIsDestroyed(),
+    writeableSyncObject.getIsDestroyed(),
     "auto-instantiated writeableSyncObject is destructed when syncChannel is destructed"
   );
 
