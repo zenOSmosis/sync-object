@@ -28,6 +28,6 @@
     "lodash.clonedeep": "^4.5.0",
     "object-hash": "^2.2.0",
     "object-path": "^0.11.8",
-    "phantom-core": "github:zenosmosis/phantom-core#v3.0.0--core-orchestrator"
+    "phantom-core": "github:zenosmosis/phantom-core#v3.0.0--adjustable-log-levels"
   }
 }
