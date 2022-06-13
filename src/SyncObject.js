@@ -1,5 +1,9 @@
-const PhantomCore = require("phantom-core");
-const { deepMerge, EVT_UPDATED, EVT_DESTROYED } = PhantomCore;
+const {
+  PhantomCore,
+  EVT_UPDATE,
+  EVT_DESTROY,
+  deepMerge,
+} = require("phantom-core");
 const flatten = require("flat");
 const objectPath = require("object-path");
 const hash = require("object-hash");
@@ -98,7 +102,7 @@ class SyncObject extends PhantomCore {
    * Default strategy is "merge," meaning that existing properties will be
    * retained.
    *
-   * @emits EVT_UPDATED With changed state. IMPORTANT: This is only the changed
+   * @emits EVT_UPDATE With changed state. IMPORTANT: This is only the changed
    * state, and does not represent values which were the same before updating.
    *
    * @param {Object} partialNextState Partial state, if merging; complete state
@@ -113,7 +117,7 @@ class SyncObject extends PhantomCore {
     if (!isMerge) {
       this._state = partialNextState;
 
-      this.emit(EVT_UPDATED, partialNextState);
+      this.emit(EVT_UPDATE, partialNextState);
     } else {
       // FIXME: (jh) This fixes an issue in the ReShell version of Speaker.app
       // where the virtual server would not distribute chat messages to the
@@ -154,10 +158,10 @@ class SyncObject extends PhantomCore {
         }
       }
 
-      // Only emit EVT_UPDATED if something has changed
+      // Only emit EVT_UPDATE if something has changed
       if (Object.keys(diffedUpdatedState).length) {
         // Emit the actual changed state
-        this.emit(EVT_UPDATED, diffedUpdatedState);
+        this.emit(EVT_UPDATE, diffedUpdatedState);
       }
     }
   }
@@ -182,5 +186,5 @@ class SyncObject extends PhantomCore {
 }
 
 module.exports = SyncObject;
-module.exports.EVT_UPDATED = EVT_UPDATED;
-module.exports.EVT_DESTROYED = EVT_DESTROYED;
+module.exports.EVT_UPDATE = EVT_UPDATE;
+module.exports.EVT_DESTROY = EVT_DESTROY;

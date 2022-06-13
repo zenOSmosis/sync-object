@@ -1,5 +1,5 @@
 const SyncObject = require("./SyncObject");
-const { EVT_UPDATED, EVT_DESTROYED } = SyncObject;
+const { EVT_UPDATE, EVT_DESTROY } = SyncObject;
 
 const BidirectionalSyncObject = require("./BidirectionalSyncObject");
 const {
@@ -9,8 +9,8 @@ const {
 } = BidirectionalSyncObject;
 
 module.exports = SyncObject;
-module.exports.EVT_UPDATED = EVT_UPDATED;
-module.exports.EVT_DESTROYED = EVT_DESTROYED;
+module.exports.EVT_UPDATE = EVT_UPDATE;
+module.exports.EVT_DESTROY = EVT_DESTROY;
 
 module.exports.BidirectionalSyncObject = BidirectionalSyncObject;
 module.exports.EVT_WRITABLE_PARTIAL_SYNC = EVT_WRITABLE_PARTIAL_SYNC;

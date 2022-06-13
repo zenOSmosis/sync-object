@@ -1,11 +1,10 @@
-const PhantomCore = require("phantom-core");
-const { EVT_DESTROYED } = PhantomCore;
+const { PhantomCore, EVT_DESTROY } = require("phantom-core");
 const SyncObject = require("./SyncObject");
-const { EVT_UPDATED } = SyncObject;
+const { EVT_UPDATE } = SyncObject;
 
 const debounce = require("debounce");
 
-const EVT_WRITABLE_PARTIAL_SYNC = "writable-sync-updated";
+const EVT_WRITABLE_PARTIAL_SYNC = "writable-sync-update";
 const EVT_WRITABLE_FULL_SYNC = "writable-full-sync";
 const EVT_READ_ONLY_SYNC_UPDATE_HASH = "read-only-sync-update-hash";
 
@@ -71,7 +70,7 @@ class BidirectionalSyncObject extends PhantomCore {
       this
     );
 
-    this._writableSyncObject.on(EVT_UPDATED, this._writableDidPartiallyUpdate);
+    this._writableSyncObject.on(EVT_UPDATE, this._writableDidPartiallyUpdate);
 
     this._writeSyncVerificationTimeout = null;
 
@@ -107,7 +106,7 @@ class BidirectionalSyncObject extends PhantomCore {
   async destroy() {
     clearTimeout(this._writeSyncVerificationTimeout);
 
-    this._writableSyncObject.off(EVT_UPDATED, this._writableDidPartiallyUpdate);
+    this._writableSyncObject.off(EVT_UPDATE, this._writableDidPartiallyUpdate);
 
     await super.destroy();
   }
@@ -316,7 +315,7 @@ class BidirectionalSyncObject extends PhantomCore {
 }
 
 module.exports = BidirectionalSyncObject;
-module.exports.EVT_DESTROYED = EVT_DESTROYED;
+module.exports.EVT_DESTROY = EVT_DESTROY;
 module.exports.EVT_WRITABLE_PARTIAL_SYNC = EVT_WRITABLE_PARTIAL_SYNC;
 module.exports.EVT_WRITABLE_FULL_SYNC = EVT_WRITABLE_FULL_SYNC;
 module.exports.EVT_READ_ONLY_SYNC_UPDATE_HASH = EVT_READ_ONLY_SYNC_UPDATE_HASH;
